@@ -64,11 +64,11 @@
         <div class="warning-title">⚠️ 請對準「左邊」QR Code</div>
         <div class="tip-text">
             電子發票有兩顆條碼：<br>
-            請死死對準 <span class="highlight">👈 左邊那顆 (有發票號碼的)</span><br>
-            用手指把右邊那顆遮住，掃描最厲害！
+            請對準 <span class="highlight">👈 左邊那顆</span><br>
+            (把右邊那顆用手指遮住，掃描最厲害！)
         </div>
         <div class="spinner"></div>
-        <p style="color: #94a3b8; font-size: 13px; margin-top: 15px;">正在為您開啟高速晶片相機...</p>
+        <p style="color: #94a3b8; font-size: 13px; margin-top: 15px;">正在開啟您的相機...</p>
     </div>
 
     <script>
@@ -95,7 +95,7 @@
                         
                         if (!invoiceRegex.test(rawInvoiceText)) {
                             // 如果不符合（代表掃到右邊亂碼或掃到別的雜物）
-                            alert("❌ 逼錯顆了老哥！您掃到右邊的明細了。\n\n請重新點開，並對準【左邊】有寫發票號碼的那顆 QR Code 喔！");
+                            alert("❌ 您掃到右邊了！。\n\n請重新點開，並對準【左邊】那顆 QR Code 喔！");
                             liff.closeWindow(); // 彈窗完乾淨自閉，不轉圈圈卡死
                             return;
                         }
