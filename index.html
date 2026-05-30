@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 拍拍中獎王 - 準備掃碼</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- 引入 HTML5 QR Code 開源庫 -->
+    <script src="https://unpkg.com" type="text/javascript"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -13,8 +15,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            justify-content: flex-start; /* 改為靠上排列，預留給相機空間 */
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
@@ -23,22 +25,24 @@
             background-color: #1e293b;
             border: 2px solid #bef264;
             border-radius: 16px;
-            padding: 30px 20px;
+            padding: 20px 15px;
             text-align: center;
-            max-width: 90%;
+            max-width: 100%;
+            width: 100%;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
         }
         .warning-title {
             color: #bef264;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 22px;
+            margin-bottom: 10px;
             font-weight: bold;
         }
         .tip-text {
             color: #e2e8f0;
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 10px;
         }
         .highlight {
             background-color: #ca8a04;
@@ -47,15 +51,21 @@
             border-radius: 4px;
             font-weight: bold;
         }
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            border-left-color: #bef264;
-            animation: spin 1s linear infinite;
-            margin: 20px auto 0;
+        /* 相機渲染區域 */
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #334155;
+            background-color: #000000;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text {
+            color: #bef264;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -63,70 +73,111 @@
     <div class="guide-box">
         <div class="warning-title">⚠️ 請對準「左邊」QR Code</div>
         <div class="tip-text">
-            電子發票有兩顆條碼：<br>
-            請對準 <span class="highlight">👈 左邊</span><br>
+            電子發票有兩顆條碼：請對準 <span class="highlight">👈 左邊</span><br>
             (用手指遮住右邊那顆，掃描最厲害！)
         </div>
-        <div class="spinner"></div>
-        <p style="color: #94a3b8; font-size: 13px; margin-top: 15px;">正在開啟您的相機...</p>
+        <div id="status-message" class="loading-text">正在啟動相機中...</div>
     </div>
+
+    <!-- HTML5 相機畫面會渲染在此容器中 -->
+    <div id="reader"></div>
 
     <script>
         // 🚀 配置區域
         const MY_LIFF_ID = "2010235526-CeuGpVfZ"; 
         const N8N_WEBHOOK_URL = "https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning"; 
+        
+        let html5QrcodeScanner = null;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. 初始化 LIFF 應用
+            // 1. 初始化 LIFF
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
 
-                // 2. ⚡ 刻意延遲 1.5 秒再開相機，強迫長輩看一下提示字卡，避免亂掃
+                // 2. ⚡ 刻意延遲 1.5 秒再啟動相機鏡頭，強迫看字卡
                 setTimeout(() => {
-                    liff.scanCodeV2().then((result) => {
-                        const rawInvoiceText = result.value || "";
+                    startWebCamera();
+                }, 1500);
 
-                        // 3. 🛡️ 前端超級防呆：用正則表達式檢查是不是「兩碼英文+純數字」的左邊發票特徵
-                        const invoiceRegex = /^[A-Za-z]{2}\d{8}/;
-                        
-                        if (!invoiceRegex.test(rawInvoiceText)) {
-                            // 如果不符合（代表掃到右邊亂碼或掃到別的雜物）
-                            alert("❌ 您掃到右邊了！。\n\n請重新點開，並對準【左邊】那顆 QR Code 喔！");
-                            liff.closeWindow(); // 彈窗完乾淨自閉，不轉圈圈卡死
-                            return;
-                        }
-
-                        // 4. 格式完全正確，高速度射擊給後端 n8n
-                        fetch(N8N_WEBHOOK_URL, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                destination: "xxxxxxxxxx",
-                                events: [{
-                                    type: "message",
-                                    replyToken: liff.getContext().replyToken || "",
-                                    source: { type: "user", userId: liff.getContext().userId },
-                                    timestamp: Date.now(),
-                                    mode: "active",
-                                    message: { type: "text", id: "liff_qr_" + Date.now(), text: rawInvoiceText.trim() }
-                                }]
-                            })
-                        }).then(() => {
-                            liff.closeWindow(); 
-                        }).catch(err => {
-                            liff.closeWindow();
-                        });
-                    }).catch((err) => {
-                        liff.closeWindow();
-                    });
-                }, 1500); // 1500 毫秒的黃金黃金引導緩衝
             }).catch((err) => {
-                console.error(err);
+                console.error("LIFF 初始化失敗:", err);
+                document.getElementById("status-message").innerText = "❌ 系統初始化失敗";
             });
         });
+
+        // 3. 📷 啟動內嵌網頁相機功能
+        function startWebCamera() {
+            document.getElementById("status-message").innerText = "📷 請將發票左側條碼放入下方框內";
+            
+            // 實例化掃描器物件，設定讀取框的大小與掃描頻率
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            const config = { 
+                fps: 10, // 每秒解碼 10 次，兼顧效能與速度
+                qrbox: { width: 250, height: 250 }, // 綠色對準框的大小
+                aspectRatio: 1.0
+            };
+
+            // 強制使用後置鏡頭 (environment)
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).catch((err) => {
+                console.error("無法開啟相機:", err);
+                document.getElementById("status-message").innerText = "❌ 無法開啟相機，請檢查瀏覽器權限";
+            });
+        }
+
+        // 4. 🎯 成功辨識到任何 QR Code 時觸發
+        function onScanSuccess(decodedText, decodedResult) {
+            const rawInvoiceText = decodedText || "";
+
+            // 🛡️ 您原汁原味的黃金前端防呆：檢查是不是「兩碼英文+純數字」的左邊發票特徵
+            const invoiceRegex = /^[A-Za-z]{2}\d{8}/;
+            
+            if (!invoiceRegex.test(rawInvoiceText)) {
+                // 如果不符合（代表掃到右邊雜訊，暫不中斷，讓長輩繼續對準）
+                document.getElementById("status-message").innerHTML = "<span style='color: #ef4444;'>❌ 您對到右邊條碼了！請對準左邊！</span>";
+                return; 
+            }
+
+            // 格式正確！立刻暫停相機，避免重複觸發
+            document.getElementById("status-message").innerText = "🎉 辨識成功！傳送中...";
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().catch(err => console.error(err));
+            }
+
+            // 5. 🚀 發送給後端 n8n
+            fetch(N8N_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    destination: "xxxxxxxxxx",
+                    events: [{
+                        type: "message",
+                        replyToken: liff.getContext().replyToken || "",
+                        source: { type: "user", userId: liff.getContext().userId },
+                        timestamp: Date.now(),
+                        mode: "active",
+                        message: { type: "text", id: "liff_qr_" + Date.now(), text: rawInvoiceText.trim() }
+                    }]
+                })
+            }).then(() => {
+                liff.closeWindow(); 
+            }).catch(err => {
+                liff.closeWindow();
+            });
+        }
+
+        // 6. 🔍 掃描中若沒對準、或沒偵測到 QR 碼時會持續調用（通常忽略它，維持流暢度）
+        function onScanFailure(error) {
+            // 這裡不寫代碼，否則 Log 會爆炸。讓相機在背景默默持續對焦解碼即可。
+        }
     </script>
 </body>
 </html>
