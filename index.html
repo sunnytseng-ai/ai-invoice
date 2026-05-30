@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 拍拍中獎王 - 快速掃碼中</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body {
+            background-color: #1e293b;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .loading-box { text-align: center; }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border-left-color: #2dd4bf;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { color: #bef264; margin-bottom: 5px; }
+        p { color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="loading-box">
+        <div class="spinner"></div>
+        <h2>⚡ 正在喚醒中獎王專屬相機...</h2>
+        <p>請對準發票左邊的 QR Code 進行掃描</p>
+    </div>
+
+    <script>
+        // 🚀 配置區域：老哥，請死死對齊這兩個地方！
+        const MY_LIFF_ID = "填入你剛剛在LINE開發者後台拿到的LIFFID"; 
+        const N8N_WEBHOOK_URL = "https://你的n8n網址/webhook/Winning"; 
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. 初始化 LIFF
+            liff.init({ liffId: MY_LIFF_ID }).then(() => {
+                // 2. 如果沒登入，強迫登入抓取身份
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
+                // 3. 呼叫 LINE 原生微秒級不留相簿掃碼 API
+                liff.scanCodeV2().then((result) => {
+                    const rawInvoiceText = result.value; // 拿到發票 QR Code 純文字 (如 VF9130151311501...)
+
+                    if (rawInvoiceText && rawInvoiceText.trim() !== "") {
+                        // 4. 隔空打牛：把資料假裝成 LINE 聊天訊息射給 n8n 錢錢雷達
+                        fetch(N8N_WEBHOOK_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                destination: "xxxxxxxxxx",
+                                events: [{
+                                    type: "message",
+                                    replyToken: liff.getContext().replyToken || "", // 保留珍貴的 replyToken
+                                    source: {
+                                        type: "user",
+                                        userId: liff.getContext().userId // 抓出是哪位使用者的發票
+                                    },
+                                    timestamp: Date.now(),
+                                    mode: "active",
+                                    message: {
+                                        type: "text",
+                                        id: "liff_qr_" + Date.now(),
+                                        text: rawInvoiceText.trim() // 傳送超長解碼文字
+                                    }
+                                }]
+                            })
+                        }).then(() => {
+                            // 5. n8n 成功接單，LIFF 網頁滑下去關閉，功成身退！
+                            liff.closeWindow();
+                        }).catch(err => {
+                            alert("發送給中獎王失敗: " + err);
+                            liff.closeWindow();
+                        });
+                    } else {
+                        // 用戶取消掃碼，直接關閉
+                        liff.closeWindow();
+                    }
+                }).catch((err) => {
+                    alert("相機喚醒失敗或不支援: " + err);
+                    liff.closeWindow();
+                });
+            }).catch((err) => {
+                console.error("LIFF 初始化失敗", err);
+            });
+        });
+    </script>
+</body>
+</html>
