@@ -3,62 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 拍拍中獎王 - 快速掃碼中</title>
+    <title>BUG 爆破排查中</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body {
-            background-color: #1e293b;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .loading-box { text-align: center; }
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            border-left-color: #2dd4bf;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
+        body { background-color: #1e293b; color: #ffffff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: #f43f5e; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h2 { color: #bef264; margin-bottom: 5px; }
-        p { color: #94a3b8; font-size: 14px; }
+        h2 { color: #f43f5e; }
     </style>
 </head>
 <body>
-
-    <div class="loading-box">
-        <div class="spinner"></div>
-        <h2>⚡ 正在喚醒中獎王專屬相機...</h2>
-        <p>請對準發票左邊的 QR Code 進行掃描</p>
-    </div>
+    <div class="spinner"></div>
+    <h2>偵錯模式已啟動</h2>
+    <p>請觀察手機彈出的每一個提示框</p>
 
     <script>
-        // 🚀 配置區域：老哥，這兩行已經為你 100% 綁定對齊！
         const MY_LIFF_ID = "2010235526-CeuGpVfZ"; 
         const N8N_WEBHOOK_URL = "https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning"; 
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. 初始化 LIFF
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                // 2. 如果沒登入，強迫登入抓取身份
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
 
-                // 3. 呼叫 LINE 原生微秒級不留相簿掃碼 API
                 liff.scanCodeV2().then((result) => {
-                    const rawInvoiceText = result.value; // 拿到發票 QR Code 純文字 (如 VF9130151311501...)
+                    const rawInvoiceText = result.value;
+
+                    // 🚨 雷達 1：檢查有沒有成功掃到 QR Code
+                    alert("【雷達 1：成功解碼！】\n掃到的內容是：\n" + rawInvoiceText);
 
                     if (rawInvoiceText && rawInvoiceText.trim() !== "") {
-                        // 4. 隔空打牛：把資料假裝成 LINE 聊天訊息射給 n8n 錢錢雷達
+                        
+                        // 🚨 雷達 2：準備發射給 Webhook
+                        alert("【雷達 2：準備發射！】\n即將送到：\n" + N8N_WEBHOOK_URL);
+
                         fetch(N8N_WEBHOOK_URL, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -66,37 +46,32 @@
                                 destination: "xxxxxxxxxx",
                                 events: [{
                                     type: "message",
-                                    replyToken: liff.getContext().replyToken || "", // 保留珍貴的 replyToken
-                                    source: {
-                                        type: "user",
-                                        userId: liff.getContext().userId // 抓出是哪位使用者的發票
-                                    },
+                                    replyToken: liff.getContext().replyToken || "",
+                                    source: { type: "user", userId: liff.getContext().userId },
                                     timestamp: Date.now(),
                                     mode: "active",
-                                    message: {
-                                        type: "text",
-                                        id: "liff_qr_" + Date.now(),
-                                        text: rawInvoiceText.trim() // 傳送超長解碼文字
-                                    }
+                                    message: { type: "text", id: "liff_qr_" + Date.now(), text: rawInvoiceText.trim() }
                                 }]
                             })
-                        }).then(() => {
-                            // 5. n8n 成功接單，LIFF 網頁滑下去關閉，功成身退！
+                        }).then((response) => {
+                            // 🚨 雷達 3：看 n8n 有沒有開門回應
+                            alert("【雷達 3：n8n 有回應了！】\nHTTP 狀態碼：" + response.status + "\n網頁即將關閉。");
                             liff.closeWindow();
                         }).catch(err => {
-                            alert("發送給中獎王失敗: " + err);
+                            // 🚨 異常雷達：如果發射失敗（例如 ngrok 斷線或網址錯）
+                            alert("💥 【發射慘遭失敗！】\n錯誤原因：" + err);
                             liff.closeWindow();
                         });
                     } else {
-                        // 用戶取消掃碼，直接關閉
+                        alert("ユーザーがキャンセル、または空のデータ");
                         liff.closeWindow();
                     }
                 }).catch((err) => {
-                    alert("相機喚醒失敗或不支援: " + err);
+                    alert("相機喚醒失敗: " + err);
                     liff.closeWindow();
                 });
             }).catch((err) => {
-                console.error("LIFF 初始化失敗", err);
+                alert("LIFF 初始化失敗: " + err);
             });
         });
     </script>
