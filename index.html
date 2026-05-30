@@ -84,7 +84,7 @@
                     return;
                 }
 
-                // 2. ⚡ 刻意延遲 1.5 秒再開相機，強迫長輩看一下提示字卡
+                // 2. ⚡ 刻意延遲 2 秒再開相機，強迫長輩看一下提示字卡
                 setTimeout(() => {
                     // 呼叫 LINE 官方硬體級解碼相機
                     liff.scanCodeV2().then((result) => {
@@ -124,7 +124,7 @@
                         // 用戶取消掃碼或關閉相機，直接關閉網頁
                         liff.closeWindow();
                     });
-                }, 1500); 
+                }, 2000); 
             }).catch((err) => {
                 console.error(err);
             });
