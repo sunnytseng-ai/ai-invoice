@@ -3,42 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUG 爆破排查中</title>
+    <title>AI 拍拍中獎王 - 準備掃碼</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { background-color: #1e293b; color: #ffffff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: #f43f5e; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .guide-box {
+            background-color: #1e293b;
+            border: 2px solid #bef264;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .warning-title {
+            color: #bef264;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .tip-text {
+            color: #e2e8f0;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .highlight {
+            background-color: #ca8a04;
+            color: #ffffff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border-left-color: #bef264;
+            animation: spin 1s linear infinite;
+            margin: 20px auto 0;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h2 { color: #f43f5e; }
     </style>
 </head>
 <body>
-    <div class="spinner"></div>
-    <h2>偵錯模式已啟動</h2>
-    <p>請觀察手機彈出的每一個提示框</p>
+
+    <div class="guide-box">
+        <div class="warning-title">⚠️ 請對準「左邊」QR Code</div>
+        <div class="tip-text">
+            電子發票有兩顆條碼：<br>
+            請死死對準 <span class="highlight">👈 左邊那顆 (有發票號碼的)</span><br>
+            用手指把右邊那顆遮住，掃描最厲害！
+        </div>
+        <div class="spinner"></div>
+        <p style="color: #94a3b8; font-size: 13px; margin-top: 15px;">正在為您開啟高速度相機...</p>
+    </div>
 
     <script>
+        // 🚀 配置區域：前後端神經元實體綁定
         const MY_LIFF_ID = "2010235526-CeuGpVfZ"; 
         const N8N_WEBHOOK_URL = "https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning"; 
 
         document.addEventListener("DOMContentLoaded", function() {
+            // 1. 初始化 LIFF 應用
             liff.init({ liffId: MY_LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) {
                     liff.login();
                     return;
                 }
 
-                liff.scanCodeV2().then((result) => {
-                    const rawInvoiceText = result.value;
+                // 2. ⚡ 刻意延遲 1.5 秒再開相機，強迫長輩看一下提示字卡，避免亂掃
+                setTimeout(() => {
+                    liff.scanCodeV2().then((result) => {
+                        const rawInvoiceText = result.value || "";
 
-                    // 🚨 雷達 1：檢查有沒有成功掃到 QR Code
-                    alert("【雷達 1：成功解碼！】\n掃到的內容是：\n" + rawInvoiceText);
-
-                    if (rawInvoiceText && rawInvoiceText.trim() !== "") {
+                        // 3. 🛡️ 前端超級防呆：用正則表達式檢查是不是「兩碼英文+純數字」的左邊發票特徵
+                        const invoiceRegex = /^[A-Za-z]{2}\d{8}/;
                         
-                        // 🚨 雷達 2：準備發射給 Webhook
-                        alert("【雷達 2：準備發射！】\n即將送到：\n" + N8N_WEBHOOK_URL);
+                        if (!invoiceRegex.test(rawInvoiceText)) {
+                            // 如果不符合（代表掃到右邊亂碼或掃到別的雜物）
+                            alert("❌ 逼錯顆了老哥！您掃到右邊的明細了。\n\n請重新點開，並對準【左邊】有寫發票號碼的那顆 QR Code 喔！");
+                            liff.closeWindow(); // 彈窗完乾淨自閉，不轉圈圈卡死
+                            return;
+                        }
 
+                        // 4. 格式完全正確，高速度射擊給後端 n8n
                         fetch(N8N_WEBHOOK_URL, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -53,25 +114,17 @@
                                     message: { type: "text", id: "liff_qr_" + Date.now(), text: rawInvoiceText.trim() }
                                 }]
                             })
-                        }).then((response) => {
-                            // 🚨 雷達 3：看 n8n 有沒有開門回應
-                            alert("【雷達 3：n8n 有回應了！】\nHTTP 狀態碼：" + response.status + "\n網頁即將關閉。");
-                            liff.closeWindow();
+                        }).then(() => {
+                            liff.closeWindow(); // 後端收單，網頁瀟灑退場
                         }).catch(err => {
-                            // 🚨 異常雷達：如果發射失敗（例如 ngrok 斷線或網址錯）
-                            alert("💥 【發射慘遭失敗！】\n錯誤原因：" + err);
                             liff.closeWindow();
                         });
-                    } else {
-                        alert("ユーザーがキャンセル、または空のデータ");
+                    }).catch((err) => {
                         liff.closeWindow();
-                    }
-                }).catch((err) => {
-                    alert("相機喚醒失敗: " + err);
-                    liff.closeWindow();
-                });
+                    });
+                }, 1500); // 1500 毫秒的黃金黃金引導緩衝
             }).catch((err) => {
-                alert("LIFF 初始化失敗: " + err);
+                console.error(err);
             });
         });
     </script>
