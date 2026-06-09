@@ -65,7 +65,7 @@
     </footer>
 
     <script>
-        // 🚀 請在此填入你原本對齊通車的 n8n 錢錢雷達 Webhook 實體 URL 地址
+        // 🚀 焊死的 ngrok 固定網址通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
 
         const btnLaunch = document.getElementById('btnLaunch');
@@ -76,18 +76,15 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
 
-        // 監聽巨型按鈕點擊，模擬點擊隱藏的原生相機 input
         btnLaunch.addEventListener('click', () => {
-            cameraInput.value = ''; // 徹底清除快取歷史，防手滑
+            cameraInput.value = ''; 
             cameraInput.click();
         });
 
-        // 監聽相機拍照完成事件
         cameraInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // 切換成讀取中狀態畫面
             statusPlaceholder.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
             loadingText.innerText = "軍規影像解碼與去噪中...";
@@ -97,44 +94,33 @@
                 const img = new Image();
                 img.onload = function() {
                     
-                    // =======================================================
-                    // 🎯 核心治本補丁：升格為軍規級黃金尺寸 (徹底根治 Gemini 500 錯誤)
-                    // =======================================================
-                    // 將寬度鎖死在 1024px，高度依原圖比例等比縮放，確保寬高皆大於 512px，滿足 Gemini 視覺 Patch 切分胃口！
+                    // 🎯 升格為軍規級黃金尺寸 (滿足 Gemini 視覺 Patch 胃口)
                     const targetWidth = 1024;
                     const targetHeight = Math.floor(targetWidth * (img.height / img.width));
                     
                     canvas.width = targetWidth;
                     canvas.height = targetHeight;
                     
-                    // 將原圖平鋪繪製到高解析畫布上
                     ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
                     
-                    // 🧼 執行一對一黑白二值化去噪手術 (高對比降維)
+                    // 🧼 執行高對比二值化去噪
                     const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
                     const data = imgData.data;
                     
                     for (let i = 0; i < data.length; i += 4) {
-                        // 經典輝度權重公式算出灰階值
                         const grayscale = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
-                        // 門檻值定在 128，高於則變白、低於則變黑，字軌號碼瞬間無噪浮現
                         const binaryColor = grayscale > 128 ? 255 : 0;
-                        data[i] = binaryColor;     // R
-                        data[i+1] = binaryColor;   // G
-                        data[i+2] = binaryColor;   // B
+                        data[i] = binaryColor;     
+                        data[i+1] = binaryColor;   
+                        data[i+2] = binaryColor;   
                     }
                     ctx.putImageData(imgData, 0, 0);
                     
-                    // 壓製成超輕量的 JPEG 格式 Base64，體積僅約 100KB，完全不耗網速
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    
-                    // 封裝成 2.0 版無痕專屬識別前綴 Payload
                     const finalPayload = `IMAGE_BASE64:${compressedBase64}`;
                     
-                    // 物理銷毀記憶體中的大圖對象，死死守護長輩手機相簿空間
-                    img.src = '';
+                    img.src = ''; // 物理銷毀大圖記憶體
                     
-                    // 發射數據包到後端血管
                     sendToBackend(finalPayload);
                 };
                 img.src = event.target.result;
@@ -142,11 +128,9 @@
             reader.readAsDataURL(file);
         });
 
-        // 打 Fetch API 將數據射入後端
         function sendToBackend(payloadData) {
             loadingText.innerText = "免費 Gemini 大腦全速辨識中...";
             
-            // 構建與 n8n 錢錢雷達完全對齊的 Line Webhook 標準結構
             const mockLineEvent = {
                 body: {
                     events: [{
@@ -154,25 +138,28 @@
                         message: {
                             type: "text",
                             id: "liff_snapshot_" + Date.now(),
-                            text: payloadData // 帶有前綴的 Base64 文字
+                            text: payloadData
                         }
                     }]
                 }
             };
 
+            // 🛡️ V2.0 鋼鐵物理破防發射台
             fetch(N8N_WEBHOOK_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true' // 🚀 破除 ngrok 官方彈窗攔截
+                },
+                mode: 'cors', // 🛡️ 強制啟用瀏覽器跨域相容跑道
                 body: JSON.stringify(mockLineEvent)
             })
             .then(res => {
                 loadingText.innerText = "傳送成功！即將關閉...";
                 setTimeout(() => {
-                    // 功成身退，自動關閉 LIFF 網頁，原路退回 Line 聊天室接收中獎報告
                     if (typeof liff !== 'undefined' && liff.closeWindow) {
                         liff.closeWindow();
                     } else {
-                        // 萬一在普通瀏覽器測試，自動恢復初始畫面
                         statusPlaceholder.classList.remove('hidden');
                         loadingOverlay.classList.add('hidden');
                     }
