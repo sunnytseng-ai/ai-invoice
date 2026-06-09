@@ -1,9 +1,75 @@
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 拍拍中獎王 - 雙模控制台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffffff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 selection:bg-emerald-500 selection:text-white">
+
+    <header class="text-center my-4 animate-fade-in">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 tracking-wider">
+            📸 AI 拍拍中獎王 V2.0
+        </h1>
+        <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest">初心完全體 • 0成本無痕對對碰</p>
+    </header>
+
+    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto my-2">
+        
+        <div class="bg-slate-800/80 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-slate-700/50 w-full text-center relative overflow-hidden min-h-[320px] flex flex-col justify-center items-center">
+            
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+            <canvas id="processCanvas" class="hidden"></canvas>
+
+            <div id="statusPlaceholder" class="space-y-4">
+                <div class="mx-auto w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
+                    <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-200">準備對獎！</h3>
+                    <p class="text-slate-400 text-xs mt-1 px-4">請點擊下方大按鈕拍照，系統會自動轉為黑白高對比圖送出，絕對不佔用手機相簿空間！</p>
+                </div>
+            </div>
+
+            <div id="loadingOverlay" class="hidden flex flex-col items-center space-y-3">
+                <div class="loading-spinner"></div>
+                <p id="loadingText" class="text-emerald-400 font-bold text-sm">去噪與軍規影像封裝中...</p>
+            </div>
+            
+        </div>
+    </main>
+
+    <footer class="w-full max-w-md mx-auto pt-4 pb-6">
+        <button id="btnLaunch" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xl py-5 rounded-2xl shadow-xl active:scale-95 transition-all duration-150 flex items-center justify-center space-x-3 border border-emerald-300/20 cursor-pointer">
+            <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            </svg>
+            <span>📸 拍攝傳統發票對獎</span>
+        </button>
+    </footer>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         // 🚀 焊死的 ngrok 固定網址通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
-        // 🚀 請貼入你此處 LINE 官方後台給你的實體 LIFF ID (例如: 12345678-xxxxxxxx)
-        const LIFF_ID = '你的_LIFF_ID_貼在這裡'; 
+        // 🚀 已自動幫老哥焊死綁定的實體 LIFF ID
+        const LIFF_ID = '2010235526-CeuGpVfZ'; 
 
         const btnLaunch = document.getElementById('btnLaunch');
         const cameraInput = document.getElementById('cameraInput');
@@ -18,11 +84,6 @@
 
         // 🛡️ 網頁一打開，立刻初始化 LIFF，強行扣押長輩的 userId
         document.addEventListener("DOMContentLoaded", () => {
-            if (LIFF_ID === '你的_LIFF_ID_貼在這裡') {
-                console.warn("⚠️ 提醒老哥：別忘了把 LIFF_ID 變數換成你 LINE 後台的實體 ID 哦！");
-                return;
-            }
-            
             liff.init({ liffId: LIFF_ID })
                 .then(() => {
                     if (liff.isLoggedIn()) {
@@ -92,7 +153,7 @@
         function sendToBackend(payloadData) {
             loadingText.innerText = "免費 Gemini 大腦全速辨識中...";
             
-            // 🎯 終極對齊補丁：手動把剛才拿到的實體 userId 塞進去，原裝對齊 1.0 的 LINE 血管結構！
+            // 🎯 終極對齊補丁：手動把實體 userId 塞進去，原裝對齊 1.0 的 LINE 血管結構！
             const mockLineEvent = {
                 body: {
                     events: [{
@@ -140,3 +201,5 @@
             });
         }
     </script>
+</body>
+</html>
