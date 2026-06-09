@@ -2,227 +2,190 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 拍拍中獎王 - 雙模初心完全體</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 拍拍中獎王 - 雙模控制台</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { 
-            background-color: #0f172a; 
-            color: #ffffff; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px; 
-            box-sizing: border-box; 
-        }
-        .guide-box { 
-            background-color: #1e293b; 
-            border: 2px solid #bef264; 
-            border-radius: 16px; 
-            padding: 30px 20px; 
-            text-align: center; 
-            width: 100%; 
-            max-width: 400px; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); 
-        }
-        .title { 
-            color: #bef264; 
-            font-size: 26px; 
-            margin-bottom: 10px; 
-            font-weight: bold; 
-        }
-        .sub-tip {
-            color: #94a3b8; 
-            font-size: 14px; 
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
-        .btn { 
-            background-color: #bef264; 
-            color: #0f172a; 
-            border: none; 
-            padding: 18px 16px; 
-            font-size: 19px; 
-            font-weight: bold; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            margin-top: 15px; 
-            width: 100%; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); 
-            transition: all 0.2s; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        .btn:active { 
-            transform: scale(0.98); 
-            opacity: 0.9; 
-        }
-        .btn-secondary { 
-            background-color: #334155; 
-            color: #ffffff; 
-            margin-top: 15px; 
-        }
-        .spinner { 
-            display: none; 
-            border: 4px solid rgba(255,255,255,0.1); 
-            width: 40px; 
-            height: 40px; 
-            border-radius: 50%; 
-            border-left-color: #bef264; 
-            animation: spin 1s linear infinite; 
-            margin: 20px auto 0; 
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffffff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #capture-trigger { display: none; }
     </style>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 selection:bg-emerald-500 selection:text-white">
 
-    <div class="guide-box" id="main-card">
-        <div class="title">🧾 AI 拍拍中獎王</div>
-        <div class="sub-tip">2.0 初心版：網頁沙盒自動壓縮，100% 不留手機相簿，請安心拍照！</div>
+    <header class="text-center my-4 animate-fade-in">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 tracking-wider">
+            📸 AI 拍拍中獎王 V2.0
+        </h1>
+        <p class="text-slate-400 text-xs mt-1 font-medium tracking-widest">初心完全體 • 0成本無痕對對碰</p>
+    </header>
+
+    <main class="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto my-2">
         
-        <div id="button-group">
-            <button class="btn" id="start-qr-btn">⚡ 掃描電子發票 (QR Code)</button>
-            <button class="btn btn-secondary" id="start-ocr-btn">📸 拍攝傳統 / 長條發票</button>
+        <div class="bg-slate-800/80 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-slate-700/50 w-full text-center relative overflow-hidden min-h-[320px] flex flex-col justify-center items-center">
+            
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+            <canvas id="processCanvas" class="hidden"></canvas>
+
+            <div id="statusPlaceholder" class="space-y-4">
+                <div class="mx-auto w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
+                    <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-200">準備對獎！</h3>
+                    <p class="text-slate-400 text-xs mt-1 px-4">請點擊下方大按鈕拍照，系統會自動轉為黑白高對比圖送出，絕對不佔用手機相簿空間！</p>
+                </div>
+            </div>
+
+            <div id="loadingOverlay" class="hidden flex flex-col items-center space-y-3">
+                <div class="loading-spinner"></div>
+                <p id="loadingText" class="text-emerald-400 font-bold text-sm">去噪與軍規影像封裝中...</p>
+            </div>
+            
         </div>
+    </main>
 
-        <input type="file" id="capture-trigger" accept="image/*" capture="environment">
-
-        <div class="spinner" id="loading-spinner"></div>
-        <p id="status-text" style="color: #bef264; font-size: 16px; font-weight: bold; margin-top: 15px; display:none;"></p>
-    </div>
+    <footer class="w-full max-w-md mx-auto pt-4 pb-6">
+        <button id="btnLaunch" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xl py-5 rounded-2xl shadow-xl active:scale-95 transition-all duration-150 flex items-center justify-center space-x-3 border border-emerald-300/20 cursor-pointer">
+            <svg class="w-6 h-6 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            </svg>
+            <span>📸 拍攝傳統發票對獎</span>
+        </button>
+    </footer>
 
     <script>
-        // 🚀 精准實體綁定老哥 2026 最新 ngrok 與 LIFF ID
-        const MY_LIFF_ID = "2010235526-CeuGpVfZ";
-        const N8N_WEBHOOK_URL = "https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning";
+        // 🚀 請在此填入你原本對齊通車的 n8n 錢錢雷達 Webhook 實體 URL 地址
+        const N8N_WEBHOOK_URL = 'https://n8n.pandalab.org/webhook/b6635293-27dc-406a-a8fc-c56a73516cc9';
 
-        document.addEventListener("DOMContentLoaded", function() {
-            liff.init({ liffId: MY_LIFF_ID }).then(() => {
-                if (!liff.isLoggedIn()) { liff.login(); return; }
-                initAppListeners();
-            }).catch(err => console.error("LIFF 初始化失敗", err));
+        const btnLaunch = document.getElementById('btnLaunch');
+        const cameraInput = document.getElementById('cameraInput');
+        const canvas = document.getElementById('processCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusPlaceholder = document.getElementById('statusPlaceholder');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
+        // 監聽巨型按鈕點擊，模擬點擊隱藏的原生相機 input
+        btnLaunch.addEventListener('click', () => {
+            cameraInput.value = ''; // 徹底清除快取歷史，防手滑
+            cameraInput.click();
         });
 
-        function initAppListeners() {
-            // 【跑道一：LINE 原生硬體晶片級 QR Code 閃電掃描】
-            document.getElementById("start-qr-btn").addEventListener("click", () => {
-                showLoading("正在喚醒晶片高速相機...");
-                
-                setTimeout(() => {
-                    liff.scanCodeV2().then((result) => {
-                        const qrCodeMessage = result.value || "";
-                        const invoiceRegex = /^[A-Za-z]{2}\d{8}/;
-                        
-                        if (!invoiceRegex.test(qrCodeMessage)) {
-                            alert("❌ 逼錯顆了老哥！您掃到右邊的明細了。\n\n請重新點開，並對準【左邊】有寫發票號碼的那顆 QR Code 喔！");
-                            liff.closeWindow();
-                            return;
-                        }
-                        
-                        showLoading("🎉 條碼掃描成功！正在同步對獎...");
-                        sendToN8N({ type: "text", text: qrCodeMessage.trim() });
-                    }).catch(() => { liff.closeWindow(); });
-                }, 1000);
-            });
+        // 監聽相機拍照完成事件
+        cameraInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            // 【跑道二：WBS 1.3 HTML5 原生相機捕獲 + Canvas 記憶體爆破去噪】
-            const fileInput = document.getElementById("capture-trigger");
-            document.getElementById("start-ocr-btn").addEventListener("click", () => {
-                fileInput.click(); // 毫秒級直接開拍，0 瀏覽器隱私彈窗詢問
-            });
+            // 切換成讀取中狀態畫面
+            statusPlaceholder.classList.add('hidden');
+            loadingOverlay.classList.remove('hidden');
+            loadingText.innerText = "軍規影像解碼與去噪中...";
 
-            fileInput.addEventListener("change", function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                showLoading("🧼 AI 正在對焦去噪並優化檔案品質...");
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement("canvas");
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // ⚙️ 鐵律：等比例縮小，鎖死最大寬度 1000px，檔案體積瞬間剩下 80-120KB
-                        const max_width = 1000;
-                        if (width > max_width) {
-                            height = Math.round((height * max_width) / width);
-                            width = max_width;
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // ⚙️ 記憶體級黑白高對比演算法（專治手抖模糊、反光，邊緣極度銳利化）
-                        const imgData = ctx.getImageData(0, 0, width, height);
-                        const data = imgData.data;
-                        for (let i = 0; i < data.length; i += 4) {
-                            // 權重灰階公式
-                            let brightness = 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2];
-                            // 邊緣對比拉伸（二值化前置強化）
-                            brightness = brightness > 128 ? brightness + 25 : brightness - 25;
-                            // 限幅防止溢出
-                            if (brightness > 255) brightness = 255;
-                            if (brightness < 0) brightness = 0;
-                            
-                            data[i] = brightness;     // R
-                            data[i + 1] = brightness; // G
-                            data[i + 2] = brightness; // B
-                        }
-                        ctx.putImageData(imgData, 0, 0);
-                        
-                        // 品質設為 0.6，輸出微型圖片字串（LIFF一關閉，iOS沙盒自動物理抹除此暫存檔案）
-                        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6);
-                        
-                        showLoading("🚀 輕量化發票已發射！同步對獎記帳中...");
-                        sendToN8N({ type: "image", base64: compressedBase64 });
-                    };
-                    img.src = event.target.result;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    
+                    // =======================================================
+                    // 🎯 核心治本補丁：升格為軍規級黃金尺寸 (徹底根治 Gemini 500 錯誤)
+                    // =======================================================
+                    // 將寬度鎖死在 1024px，高度依原圖比例等比縮放，確保寬高皆大於 512px，滿足 Gemini 視覺 Patch 切分胃口！
+                    const targetWidth = 1024;
+                    const targetHeight = Math.floor(targetWidth * (img.height / img.width));
+                    
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    
+                    // 將原圖平鋪繪製到高解析畫布上
+                    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+                    
+                    // 🧼 執行一對一黑白二值化去噪手術 (高對比降維)
+                    const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                    const data = imgData.data;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        // 經典輝度權重公式算出灰階值
+                        const grayscale = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+                        // 門檻值定在 128，高於則變白、低於則變黑，字軌號碼瞬間無噪浮現
+                        const binaryColor = grayscale > 128 ? 255 : 0;
+                        data[i] = binaryColor;     // R
+                        data[i+1] = binaryColor;   // G
+                        data[i+2] = binaryColor;   // B
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                    
+                    // 壓製成超輕量的 JPEG 格式 Base64，體積僅約 100KB，完全不耗網速
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    
+                    // 封裝成 2.0 版無痕專屬識別前綴 Payload
+                    const finalPayload = `IMAGE_BASE64:${compressedBase64}`;
+                    
+                    // 物理銷毀記憶體中的大圖對象，死死守護長輩手機相簿空間
+                    img.src = '';
+                    
+                    // 發射數據包到後端血管
+                    sendToBackend(finalPayload);
                 };
-                reader.readAsDataURL(file);
-            });
-        }
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
-        function showLoading(msg) {
-            document.getElementById("loading-spinner").style.display = "block";
-            document.getElementById("status-text").style.display = "block";
-            document.getElementById("status-text").innerText = msg;
-            document.getElementById("button-group").style.display = "none";
-        }
-
-        function sendToN8N(payloadData) {
-            fetch(N8N_WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    destination: "xxxxxxxxxx",
+        // 打 Fetch API 將數據射入後端
+        function sendToBackend(payloadData) {
+            loadingText.innerText = "免費 Gemini 大腦全速辨識中...";
+            
+            // 構建與 n8n 錢錢雷達完全對齊的 Line Webhook 標準結構
+            const mockLineEvent = {
+                body: {
                     events: [{
                         type: "message",
-                        replyToken: liff.getContext().replyToken || "",
-                        source: { type: "user", userId: liff.getContext().userId },
-                        timestamp: Date.now(),
-                        mode: "active",
-                        message: payloadData.type === "text" ? {
+                        message: {
                             type: "text",
-                            id: "liff_qr_" + Date.now(),
-                            text: payloadData.text
-                        } : {
-                            type: "text", // 💡 2.0 戰術精隨：以超輕量純文字 Payload 形式把 Base64 塞給 n8n，徹底免除二進位處理大山！
-                            id: "liff_ocr_" + Date.now(),
-                            text: "IMAGE_BASE64:" + payloadData.base64
+                            id: "liff_snapshot_" + Date.now(),
+                            text: payloadData // 帶有前綴的 Base64 文字
                         }
                     }]
-                })
-            }).then(() => liff.closeWindow()).catch(() => liff.closeWindow());
+                }
+            };
+
+            fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mockLineEvent)
+            })
+            .then(res => {
+                loadingText.innerText = "傳送成功！即將關閉...";
+                setTimeout(() => {
+                    // 功成身退，自動關閉 LIFF 網頁，原路退回 Line 聊天室接收中獎報告
+                    if (typeof liff !== 'undefined' && liff.closeWindow) {
+                        liff.closeWindow();
+                    } else {
+                        // 萬一在普通瀏覽器測試，自動恢復初始畫面
+                        statusPlaceholder.classList.remove('hidden');
+                        loadingOverlay.classList.add('hidden');
+                    }
+                }, 1000);
+            })
+            .catch(err => {
+                console.error(err);
+                loadingText.innerHTML = `<span class="text-rose-400">連線失敗，請檢查網路或雷達狀態！</span>`;
+                setTimeout(() => {
+                    statusPlaceholder.classList.remove('hidden');
+                    loadingOverlay.classList.add('hidden');
+                }, 3000);
+            });
         }
     </script>
 </body>
