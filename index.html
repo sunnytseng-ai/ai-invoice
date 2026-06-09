@@ -3,7 +3,7 @@
         // 🚀 焊死的 ngrok 固定網址通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         // 🚀 請貼入你此處 LINE 官方後台給你的實體 LIFF ID (例如: 12345678-xxxxxxxx)
-        const LIFF_ID = '2010235526-CeuGpVfZ'; 
+        const LIFF_ID = '你的_LIFF_ID_貼在這裡'; 
 
         const btnLaunch = document.getElementById('btnLaunch');
         const cameraInput = document.getElementById('cameraInput');
@@ -18,7 +18,7 @@
 
         // 🛡️ 網頁一打開，立刻初始化 LIFF，強行扣押長輩的 userId
         document.addEventListener("DOMContentLoaded", () => {
-            if (LIFF_ID === '2010235526-CeuGpVfZ') {
+            if (LIFF_ID === '你的_LIFF_ID_貼在這裡') {
                 console.warn("⚠️ 提醒老哥：別忘了把 LIFF_ID 變數換成你 LINE 後台的實體 ID 哦！");
                 return;
             }
