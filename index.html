@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 拍拍中獎王</title>
     <script>
-        // 🎯 路由分流防線：確保只有帶 page=manual 時才跳轉
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('page') === 'manual') {
             window.location.href = './manual.html' + window.location.search;
@@ -92,7 +91,6 @@
             overlay.classList.toggle('hidden', !show);
         }
 
-        // 🎯 鋼鐵防線：確保 Canvas 完全轉成 Base64 後才觸發 Promise 解決
         function processAndSendImage(file, index, total) {
             return new Promise((resolve, reject) => {
                 const currentNum = index + 1;
@@ -115,19 +113,13 @@
                         canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // 🎯 關鍵防禦：確保順利拿到影像二進位編碼
                         const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                         if (!dataUrl || !dataUrl.includes(',')) {
-                            reject(new Error("阿嬤，這張照片優化失敗，請重新再試一次喔！"));
+                            reject(new Error("這張照片優化失敗，請重新再試一次喔！"));
                             return;
                         }
 
                         const base64Image = dataUrl.split(',')[1];
-                        if (!base64Image || base64Image.trim() === "") {
-                            reject(new Error("發票數據打包空標，已自動攔截！"));
-                            return;
-                        }
-
                         toggleLoading(true, `正在對獎第 ${currentNum}/${total} 張發票...`, `UPLOADING: ${currentNum} OF ${total}`);
 
                         try {
@@ -158,15 +150,15 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
 
-            if (files.length > 10) {
-                alert("阿嬤！為了讓對獎像光速一樣快，一次最多請選 10 張喔！");
+            // 🛡️ 剛性黃金攔截防線：從 10 張剛性縮減為 5 張，確保極致穩定性
+            if (files.length > 5) {
+                alert("一次最多選 5 張發票喔！");
                 e.target.value = "";
                 return;
             }
 
             const totalFiles = files.length;
             try {
-                // 嚴格依序同步執行，絕不搶拍發射空包彈
                 for (let i = 0; i < totalFiles; i++) {
                     await processAndSendImage(files[i], i, totalFiles);
                 }
