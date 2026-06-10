@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 拍拍中獎王</title>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('page') === 'manual') {
+            // 帶著所有 LINE 必要的登入參數，平滑跳轉到手動補登頁面
+            window.location.href = './manual.html' + window.location.search;
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -17,7 +26,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* 🎯 鋼鐵防閃：預設強制隱藏主畫面，防止 Tailwind 載入前漏光 */
+        /* 🎯 鋼鐵防閃：預設強制隱藏主畫面 */
         #appLayout { display: none !important; }
     </style>
 </head>
@@ -59,7 +68,6 @@
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "TEST_USER_DEV";
 
-        // LIFF 初始化與防閃爍貼合
         document.addEventListener("DOMContentLoaded", () => {
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
                 unlockUI();
@@ -84,7 +92,6 @@
             });
         });
 
-        // 🎯 鋼鐵防閃：解鎖畫面
         function unlockUI() {
             document.getElementById('imageCapture').disabled = false;
             document.getElementById('splashScreen').style.display = 'none';
@@ -150,7 +157,6 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
 
-            // 🛡️ 剛性攔截：一次最多 10 張
             if (files.length > 10) {
                 alert("一次最多選 10 張喔！");
                 e.target.value = "";
