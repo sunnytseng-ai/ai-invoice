@@ -81,6 +81,7 @@
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "TEST_USER_DEV";
+        let REAL_DISPLAY_NAME = "測試長輩";
         let processedCount = 0;
         let isLineEnv = false;
 
@@ -98,6 +99,7 @@
                 } else {
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
+                        REAL_DISPLAY_NAME = profile.displayName;
                         unlockUI();
                     }).catch(err => { 
                         console.error(err); 
@@ -147,7 +149,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
-                        body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: "QR_DECODED:" + decodedText } }] }
+                        body: { 
+                            events: [{ 
+                                source: { 
+                                    userId: REAL_USER_ID,
+                                    displayName: REAL_DISPLAY_NAME
+                                }, 
+                                message: { text: "QR_DECODED:" + decodedText } 
+                            }] 
+                        }
                     })
                 });
                 if (res.ok) {
@@ -195,7 +205,15 @@
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                                 body: JSON.stringify({
-                                    body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: "IMAGE_BASE64:" + base64Image } }] }
+                                    body: { 
+                                        events: [{ 
+                                            source: { 
+                                                userId: REAL_USER_ID,
+                                                displayName: REAL_DISPLAY_NAME
+                                            }, 
+                                            message: { text: "IMAGE_BASE64:" + base64Image } 
+                                        }] 
+                                    }
                                 })
                             });
                             if (res.ok) {
@@ -250,9 +268,9 @@
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5">
                             <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-500 font-mono text-[10px]">${data.發票期別 || ''} | 成功 (${data.發票輸入方式 || '圖片'})</span>
+                            <span class="text-slate-500 font-mono text-[10px]">第 ${data.發票期別 || ''} 期 | 成功 (${data.發票輸入方式 || '圖片'})</span>
                         </div>
-                        <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
+                        <div class="text-sm font-black text-emerald-400">${data.金額 ? `🎉 中 ${data.金額}元` : '未中獎 😮'}</div>
                     `;
                 } else {
                     card.classList.add('border-rose-950/60', 'text-rose-400');
