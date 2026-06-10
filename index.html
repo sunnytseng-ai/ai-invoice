@@ -89,19 +89,30 @@
         document.addEventListener("DOMContentLoaded", () => {
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
                 isLineEnv = false;
-                unlockUI();
+                unlockUI(); // 非 LINE 環境直接解鎖
                 return;
             }
+            
             liff.init({ liffId: LIFF_ID }).then(() => {
                 isLineEnv = true;
-                if (!liff.isLoggedIn()) { liff.login(); } 
-                else {
-                    liff.getProfile().then(profile => { REAL_USER_ID = profile.userId; unlockUI(); })
-                        .catch(err => { console.error(err); unlockUI(); });
+                if (!liff.isLoggedIn()) { 
+                    liff.login(); 
+                } else {
+                    liff.getProfile().then(profile => { 
+                        REAL_USER_ID = profile.userId; 
+                        unlockUI(); // 🎯 修正：成功拿取 Profile 後剛性解鎖，終結無限轉圈圈！
+                    }).catch(err => { 
+                        console.error(err); 
+                        unlockUI(); // 🛡️ 兜底解鎖
+                    });
                 }
-            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+            }).catch(err => { 
+                console.error("LIFF failed:", err); 
+                unlockUI(); // 🛡️ 異常解鎖
+            });
         });
 
+        // 🎯 核心功能：撕開黑屏遮罩，露出精美主畫布
         function unlockUI() {
             document.getElementById('imageCapture').disabled = false;
             document.getElementById('splashScreen').style.display = 'none';
@@ -115,7 +126,7 @@
         }
 
         // =======================================================
-        // 🔵 跑道 2：⚡ 呼叫 LINE 官方原生超高速 scanCodeV2 條碼槍
+        // 🔵 跑道 2：⚡ 呼叫 LINE 官方原生硬體 scanCodeV2 條碼槍
         // =======================================================
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             if (!isLineEnv) {
@@ -183,7 +194,8 @@
                         } else {
                             if (height > MAX_SIDE) { width *= MAX_SIDE / height; height = MAX_SIDE; }
                         }
-                        canvas.width = width; canvas.height = height;
+                        canvas.width = width;
+                        canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
 
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
@@ -233,7 +245,7 @@
             e.target.value = ""; 
         });
 
-        // 🎯 瀑布流結果渲染卡片
+        // 🎯 共通：瀑布流結果渲染卡片
         function renderResults(items) {
             const panel = document.getElementById('resultPanel');
             const box = document.getElementById('resultBox');
@@ -241,3 +253,37 @@
             panel.classList.remove('hidden');
 
             items.forEach(rawItem => {
+                processedCount++;
+                countBadge.innerText = `${processedCount} 張發票`;
+                const data = rawItem.json ? rawItem.json : rawItem;
+                const card = document.createElement('div');
+                card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
+                
+                if (data.status === "success" || data.發票字軌與號碼) {
+                    card.classList.add('border-emerald-950/60', 'text-emerald-400');
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5">
+                            <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
+                            <span class="text-slate-500 font-mono text-[10px]">${data.發票期別 || ''} | 成功 (${data.發票輸入方式 || '圖片'})</span>
+                        </div>
+                        <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
+                    `;
+                } else {
+                    card.classList.add('border-rose-950/60', 'text-rose-400');
+                    let errMsg = "影像模糊不清";
+                    if (data.reason === "503") errMsg = "AI 大腦塞車中";
+                    if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5">
+                            <span class="font-black block text-slate-400">❌ 讀取失敗</span>
+                            <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
+                        </div>
+                        <div class="text-xs font-bold text-rose-500 text-right">${errMsg}</div>
+                    `;
+                }
+                box.insertBefore(card, box.firstChild);
+            });
+        }
+    </script>
+</body>
+</html>
