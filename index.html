@@ -34,16 +34,14 @@
         </header>
 
         <main class="w-full my-auto space-y-5">
-            
             <div class="space-y-4">
-                
                 <label class="relative flex items-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-2xl">
-                    <input type="file" id="imageCapture" accept="image/*" capture="camera" multiple class="hidden" disabled>
+                    <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
                     <div class="flex items-center space-x-4 pointer-events-none">
                         <span class="text-4xl group-hover:scale-110 transition duration-200">📸</span>
                         <div class="text-left">
                             <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
-                            <span class="block text-[11px] text-slate-500 mt-0.5">支援多張上傳 ➔ 呼叫 Claude 智慧對獎</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">支援多張相簿選取 ➔ 呼叫 AI 智慧對獎</span>
                         </div>
                     </div>
                 </label>
@@ -89,7 +87,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
                 isLineEnv = false;
-                unlockUI(); // 非 LINE 環境直接解鎖
+                unlockUI();
                 return;
             }
             
@@ -100,19 +98,18 @@
                 } else {
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
-                        unlockUI(); // 🎯 修正：成功拿取 Profile 後剛性解鎖，終結無限轉圈圈！
+                        unlockUI();
                     }).catch(err => { 
                         console.error(err); 
-                        unlockUI(); // 🛡️ 兜底解鎖
+                        unlockUI();
                     });
                 }
             }).catch(err => { 
                 console.error("LIFF failed:", err); 
-                unlockUI(); // 🛡️ 異常解鎖
+                unlockUI();
             });
         });
 
-        // 🎯 核心功能：撕開黑屏遮罩，露出精美主畫布
         function unlockUI() {
             document.getElementById('imageCapture').disabled = false;
             document.getElementById('splashScreen').style.display = 'none';
@@ -125,21 +122,15 @@
             overlay.classList.toggle('hidden', !show);
         }
 
-        // =======================================================
-        // 🔵 跑道 2：⚡ 呼叫 LINE 官方原生硬體 scanCodeV2 條碼槍
-        // =======================================================
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             if (!isLineEnv) {
-                const mockData = prompt("【MVP 測試提示】目前不在 LINE 環境中。請手動貼上電子發票左側 QRCode 的真實解碼字串進行測試：\n(例如：AJ078016151150605...)");
+                const mockData = prompt("【MVP 測試提示】請貼上電子發票左側 QRCode 的真實解碼字串：");
                 if (mockData) { fireQrCodeResult(mockData); }
                 return;
             }
-
             if (liff.scanCodeV2) {
                 liff.scanCodeV2().then(async (result) => {
-                    if (result.value) {
-                        fireQrCodeResult(result.value);
-                    }
+                    if (result.value) { fireQrCodeResult(result.value); }
                 }).catch((err) => {
                     console.error("LINE Scan failed:", err);
                     alert("掃描遭取消，或請確認 LINE Developer 後台的 Scan Code 權限是否有打勾開啟。");
@@ -172,9 +163,6 @@
             }
         }
 
-        // =======================================================
-        // 🟢 跑道 1：📸 傳統發票純相機優化流 (100% 傳承早上原汁原味)
-        // =======================================================
         function processTraditionalImage(file, index, total) {
             return new Promise((resolve) => {
                 const currentNum = index + 1;
@@ -194,8 +182,7 @@
                         } else {
                             if (height > MAX_SIDE) { width *= MAX_SIDE / height; height = MAX_SIDE; }
                         }
-                        canvas.width = width;
-                        canvas.height = height;
+                        canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
 
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
@@ -245,7 +232,6 @@
             e.target.value = ""; 
         });
 
-        // 🎯 共通：瀑布流結果渲染卡片
         function renderResults(items) {
             const panel = document.getElementById('resultPanel');
             const box = document.getElementById('resultBox');
