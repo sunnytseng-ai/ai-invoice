@@ -176,46 +176,49 @@
 
         // 🎯 將結果陣列遍歷，並啪啪啪地塞進網頁看板
         function renderResults(items) {
-            const panel = document.getElementById('resultPanel');
-            const box = document.getElementById('resultBox');
-            const countBadge = document.getElementById('resultCount');
+    const panel = document.getElementById('resultPanel');
+    const box = document.getElementById('resultBox');
+    const countBadge = document.getElementById('resultCount');
+    
+    panel.classList.remove('hidden');
+
+    items.forEach(rawItem => {
+        processedCount++;
+        countBadge.innerText = `${processedCount} 張發票`;
+
+        // 🎯 核心大去殼：萬一 n8n 帶了 .json 外殼，網頁自動扒開它；沒帶就維持原樣
+        const data = rawItem.json ? rawItem.json : rawItem;
+
+        const card = document.createElement('div');
+        card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
+        
+        // 這裡就能精準讀到 data.status 了！
+        if (data.status === "success" || data.發票字軌與號碼) {
+            card.classList.add('border-emerald-950/60', 'text-emerald-400');
+            card.innerHTML = `
+                <div class="text-xs space-y-0.5">
+                    <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
+                    <span class="text-slate-500 font-mono text-[10px]">${data.發票期別 || ''} | 辨識成功 (${data.發票輸入方式 || '圖片'})</span>
+                </div>
+                <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
+            `;
+        } else {
+            card.classList.add('border-rose-950/60', 'text-rose-400');
+            let errMsg = "影像模糊不清";
+            if (data.reason === "503") errMsg = "AI 大腦塞車中";
+            if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
             
-            panel.classList.remove('hidden');
-
-            items.forEach(data => {
-                processedCount++;
-                countBadge.innerText = `${processedCount} 張發票`;
-
-                const card = document.createElement('div');
-                card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
-                
-                if (data.status === "success") {
-                    card.classList.add('border-emerald-950/60', 'text-emerald-400');
-                    card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-500 font-mono text-[10px]">${data.發票期別 || ''} | 辨識成功 (${data.發票輸入方式 || '圖片'})</span>
-                        </div>
-                        <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
-                    `;
-                } else {
-                    card.classList.add('border-rose-950/60', 'text-rose-400');
-                    let errMsg = "影像模糊不清";
-                    if (data.reason === "503") errMsg = "AI 大腦塞車中";
-                    if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
-                    
-                    card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <span class="font-black block text-slate-400">❌ 讀取失敗</span>
-                            <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
-                        </div>
-                        <div class="text-xs font-bold text-rose-500 text-right">${errMsg}</div>
-                    `;
-                }
-                // 最新辨識出的發票，永遠插在看板的最上方（最頂端）
-                box.insertBefore(card, box.firstChild);
-            });
+            card.innerHTML = `
+                <div class="text-xs space-y-0.5">
+                    <span class="font-black block text-slate-400">❌ 讀取失敗</span>
+                    <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
+                </div>
+                <div class="text-xs font-bold text-rose-500 text-right">${errMsg}</div>
+            `;
         }
+        box.insertBefore(card, box.firstChild);
+    });
+}
 
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
