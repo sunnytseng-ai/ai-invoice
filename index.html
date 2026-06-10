@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MVP 雙模真實身分測試台</title>
+    <title>MVP 雙模防卡死測試台</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
     
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl text-center space-y-4">
-        <h1 class="text-xl font-black text-emerald-400 mb-2">🚀 MVP 雙模真實身分發射台</h1>
+        <h1 class="text-xl font-black text-emerald-400 mb-2">🚀 MVP 雙模測試發射台 (防卡死版)</h1>
         
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-left text-xs space-y-1">
-            <div class="flex justify-between"><span class="text-slate-500">LINE 狀態:</span> <span id="liffStatus" class="text-amber-400 font-bold">初始化中...</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">真實 UserID:</span> <span id="txtUserId" class="text-slate-400 font-mono break-all">尚未取得</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">LINE 狀態:</span> <span id="liffStatus" class="text-amber-400 font-bold">初始化中 (3秒後超時自動解鎖)...</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">傳送身分 ID:</span> <span id="txtUserId" class="text-slate-400 font-mono break-all">TEMP_USER_BACKUP</span></div>
         </div>
         
-        <p class="text-xs text-slate-400">測試目標：帶入真實真實身分，驗證傳統發票影像與電子發票 QR 字串判讀</p>
+        <p class="text-xs text-slate-400">測試目標：帶入真實真實身分（或備用身分），驗證傳統發票影像與電子發票 QR 字串判讀</p>
         
         <button id="btnSendImage" disabled class="w-full bg-slate-700 text-slate-400 font-bold py-4 px-6 rounded-xl text-md transition duration-200 shadow-lg cursor-not-allowed">
             🔥 模式一：發送傳統發票照片包
@@ -28,44 +28,53 @@
         
         <div class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800 text-left">
             <span class="text-xs font-bold text-slate-500 block mb-1">傳輸狀態監控</span>
-            <p id="status" class="text-sm font-mono text-amber-400 break-words">請先登入 LINE 授權...</p>
+            <p id="status" class="text-sm font-mono text-amber-400 break-words">正在嘗試連線 LINE SDK...</p>
         </div>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
-        const LIFF_ID = '2010235526-CeuGpVfZ'; // 你的真實 LIFF ID
+        const LIFF_ID = '2010235526-CeuGpVfZ'; 
         
-        let REAL_USER_ID = ""; // 用來存放真實抓到的 LINE userId
+        let REAL_USER_ID = "TEMP_USER_BACKUP"; // 預設一個備用 ID，萬一 LINE SDK 掛掉也能測
 
-        // 1. 自動初始化 LIFF 並真實抓取使用者資料
+        // 🎯 防卡死機制：3秒後無論 LIFF 成功與否，強行解鎖按鈕
+        const timeoutBackup = setTimeout(() => {
+            if (document.getElementById('liffStatus').innerText.includes("初始化中")) {
+                document.getElementById('liffStatus').innerText = "超時 (啟動備用防線)";
+                document.getElementById('liffStatus').className = "text-rose-400 font-bold";
+                document.getElementById('status').innerText = "LINE SDK 響應超時，已自動啟用測試身分解鎖按鈕！";
+                unlockButtons();
+            }
+        }, 3000);
+
+        // 1. 初始化 LIFF
         document.addEventListener("DOMContentLoaded", () => {
             liff.init({ liffId: LIFF_ID })
                 .then(() => {
+                    clearTimeout(timeoutBackup); // 成功回應，清除超時定時器
                     if (!liff.isLoggedIn()) {
-                        document.getElementById('liffStatus').innerText = "引導登入中...";
                         liff.login();
                     } else {
                         liff.getProfile().then(profile => {
                             REAL_USER_ID = profile.userId;
-                            
-                            // 更新 UI 狀態
-                            document.getElementById('liffStatus').innerText = "已連線";
+                            document.getElementById('liffStatus').innerText = "已成功連線 LINE";
                             document.getElementById('liffStatus').className = "text-emerald-400 font-bold";
                             document.getElementById('txtUserId').innerText = REAL_USER_ID;
-                            document.getElementById('status').innerText = "身分驗證成功，發射按鈕已解鎖！";
-                            
-                            // 解鎖按鈕
+                            document.getElementById('status').innerText = "真實身分驗證成功，按鈕已安全解鎖！";
                             unlockButtons();
                         }).catch(err => {
                             document.getElementById('status').innerText = "抓取 Profile 失敗: " + err.message;
+                            unlockButtons();
                         });
                     }
                 })
                 .catch(err => {
-                    document.getElementById('liffStatus').innerText = "連線失敗";
-                    document.getElementById('status').innerText = "LIFF 初始化失敗: " + err.message;
+                    clearTimeout(timeoutBackup);
+                    document.getElementById('liffStatus').innerText = "SDK 拒絕連線";
+                    document.getElementById('status').innerText = "LIFF 初始化失敗，啟用備用身分解鎖: " + err.message;
+                    unlockButtons();
                 });
         });
 
@@ -80,7 +89,7 @@
             btnQR.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl text-md transition duration-200 shadow-lg shadow-blue-900/30 cursor-pointer";
         }
 
-        // 模式一：傳統發票照片發射邏輯 (保留上一輪驗證成功的真實 S__7602179.jpg 逆向抓取)
+        // 模式一：傳統發票照片發射邏輯
         document.getElementById('btnSendImage').addEventListener('click', async () => {
             const statusEl = document.getElementById('status');
             statusEl.innerText = "正在從 GitHub 目錄獲取實體影像...";
@@ -92,16 +101,9 @@
                 const reader = new FileReader();
                 reader.onloadend = async () => {
                     const fullBase64 = reader.result.split(',')[1];
-                    statusEl.innerText = "影像封裝成功，正在帶入您的真實身分發射...";
+                    statusEl.innerText = "影像封裝成功，正在發射...";
                     
-                    const payload = { 
-                        body: { 
-                            events: [{ 
-                                source: { userId: REAL_USER_ID }, // 🎯 帶入真實真實身分
-                                message: { text: "IMAGE_BASE64:" + fullBase64 } 
-                            }] 
-                        } 
-                    };
+                    const payload = { body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: "IMAGE_BASE64:" + fullBase64 } }] } };
                     const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify(payload) });
                     statusEl.innerText = "【成功通車】傳統照片已送達！回應: " + await response.text();
                     statusEl.className = "text-sm font-mono text-emerald-400";
@@ -113,32 +115,24 @@
             }
         });
 
-        // 模式二：電子發票 QR Code 文字發射邏輯 (模擬一張真實台灣電子發票數據)
+        // 模式二：電子發票 QR Code 文字發射邏輯
         document.getElementById('btnSendQRText').addEventListener('click', async () => {
             const statusEl = document.getElementById('status');
             statusEl.innerText = "正在封裝 QR Code 標準 77 碼數據...";
             statusEl.className = "text-sm font-mono text-blue-400";
             
-            // 🎯 模擬真實台灣電子發票左側 QR Code：發票號碼(AA12345678) + 開立日期(民國115年06月21日共7碼) + 隨機碼(4碼) + 銷售額(十六進位8碼) + 總計額(十六進位8碼) + 買方統編(8碼) + 賣方統編(8碼)
-            // 號碼特徵：AA12345678，期別特徵：11506
             const mockQRCodeText = "AA1234567811506219999000000b4000000b40000000080218413**:********:1:1:1:";
-            
-            const payload = {
-                body: {
-                    events: [{
-                        source: { userId: REAL_USER_ID }, // 🎯 帶入真實真實身分
-                        message: { text: mockQRCodeText } 
-                    }]
-                }
-            };
+            const payload = { body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: mockQRCodeText } }] } };
 
             try {
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify(payload) });
                 statusEl.innerText = "【成功通車】QR文字已送達！回應: " + await response.text();
                 statusEl.className = "text-sm font-mono text-emerald-400";
             } catch (err) {
-                statusEl
+                statusEl.innerText = "【發射失敗】原因: " + err.message;
+                statusEl.className = "text-sm font-mono text-rose-400";
+            }
+        });
+    </script>
+</body>
+</html>
