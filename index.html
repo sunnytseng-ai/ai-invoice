@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 拍拍中獎王</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .loading-spinner {
@@ -22,27 +22,19 @@
 
     <header class="text-center my-auto space-y-2">
         <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">AI 拍拍中獎王</h1>
-        <p class="text-slate-400 text-sm">請選擇下方的發票類型進行對獎</p>
+        <p class="text-slate-400 text-sm">不分發票類型，拍照即可自動對獎</p>
     </header>
 
-    <main class="w-full max-w-sm mx-auto space-y-5 my-auto">
+    <main class="w-full max-w-sm mx-auto my-auto">
         
-        <label id="lblCapture" class="relative flex flex-col items-center justify-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-8 rounded-2xl h-40 transition duration-200 cursor-pointer group shadow-xl">
+        <label id="lblCapture" class="relative flex flex-col items-center justify-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-12 rounded-3xl h-56 transition duration-200 cursor-pointer group shadow-2xl">
             <input type="file" id="imageCapture" accept="image/*" capture="camera" class="hidden" disabled>
-            <div class="text-center space-y-2 pointer-events-none">
-                <div class="text-4xl group-hover:scale-110 transition duration-200">📸</div>
-                <div class="font-bold text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 傳統長條發票</div>
-                <div class="text-xs text-slate-500">自動對齊圖片並交由 AI 辨識</div>
+            <div class="text-center space-y-3 pointer-events-none">
+                <div class="text-5xl group-hover:scale-110 transition duration-200">📸</div>
+                <div class="font-bold text-xl text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 選擇發票</div>
+                <div class="text-xs text-slate-500">支援傳統長條、電子發票證明聯</div>
             </div>
         </label>
-
-        <button id="btnScanQR" disabled class="w-full bg-slate-900 border border-slate-800 hover:border-blue-500/50 flex flex-col items-center justify-center p-8 rounded-2xl h-40 transition duration-200 group shadow-xl cursor-pointer">
-            <div class="text-center space-y-2 pointer-events-none">
-                <div class="text-4xl group-hover:scale-110 transition duration-200">⚡</div>
-                <div class="font-bold text-lg text-slate-200 group-hover:text-blue-400 transition duration-200">掃描 電子發票 QR碼</div>
-                <div class="text-xs text-slate-500">直接讀取發票晶片數據</div>
-            </div>
-        </button>
 
     </main>
 
@@ -50,19 +42,19 @@
         SECURE ENCRYPTION PIPELINE
     </footer>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden animate-fade-in">
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
         <p id="loadingText" class="text-sm font-medium text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="[https://static.line-scdn.net/liff/edge/2/sdk.js](https://static.line-scdn.net/liff/edge/2/sdk.js)"></script>
     <script>
-        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
+        const N8N_WEBHOOK_URL = '[https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning](https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning)';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         
         let REAL_USER_ID = "";
 
-        // 1. LIFF 初始化與真實身分鎖定
+        // LIFF 初始化與真實身分鎖定
         document.addEventListener("DOMContentLoaded", () => {
             liff.init({ liffId: LIFF_ID })
                 .then(() => {
@@ -71,20 +63,17 @@
                     } else {
                         liff.getProfile().then(profile => {
                             REAL_USER_ID = profile.userId;
-                            unlockUI(); // 身分確認，安全解鎖介面
+                            unlockUI(); // 身分確認，安全解鎖按鈕
                         }).catch(err => console.error("Profile error:", err));
                     }
                 })
                 .catch(err => console.error("LIFF init failed:", err));
         });
 
-        // 解鎖所有功能按鈕
         function unlockUI() {
             document.getElementById('imageCapture').disabled = false;
-            document.getElementById('btnScanQR').disabled = false;
         }
 
-        // 顯示/隱藏 讀取中遮罩
         function toggleLoading(show, text = "正在精準傳輸數據...") {
             const overlay = document.getElementById('loadingOverlay');
             document.getElementById('loadingText').innerText = text;
@@ -95,9 +84,7 @@
             }
         }
 
-        // =======================================================
-        // 🔥 模式一：傳統發票實機拍照 ➔ Canvas 等比例降維壓縮
-        // =======================================================
+        // 實機拍照 ➔ Canvas 降維壓縮與發射
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -111,7 +98,7 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // 🎯 核心防線：限制長邊最大為 1024px，等比例縮放高寬
+                    // 限制長邊最大為 1024px，等比例縮放
                     const MAX_SIDE = 1024;
                     let width = img.width;
                     let height = img.height;
@@ -132,12 +119,11 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // 🎯 高階優化：採用 0.7 壓縮率轉化為 JPEG Base64
+                    // 0.7 壓縮率轉化為 JPEG Base64
                     const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
                     
-                    toggleLoading(true, "影像封裝完畢，正在上傳至 AI 大腦...");
+                    toggleLoading(true, "影像優化完畢，正在送往 AI 大腦對獎...");
 
-                    // 封裝成對齊後端的 Nesting Body 結構
                     const payload = {
                         body: {
                             events: [{
@@ -153,8 +139,8 @@
                             headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                             body: JSON.stringify(payload)
                         });
-                        toggleLoading(true, "傳輸成功！正在關閉視窗...");
-                        setTimeout(() => { liff.closeWindow(); }, 1000);
+                        toggleLoading(true, "對獎完成！正在關閉視窗...");
+                        setTimeout(() => { liff.closeWindow(); }, 1200);
                     } catch (err) {
                         toggleLoading(false);
                         alert("傳輸失敗，請檢查網路連線狀態");
@@ -163,51 +149,6 @@
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-        });
-
-        // =======================================================
-        // ⚡ 模式二：電子發票實機掃描 ➔ LINE 原生相機讀取字串
-        // =======================================================
-        document.getElementById('btnScanQR').addEventListener('click', async () => {
-            if (!liff.isInClient()) {
-                alert("請在 LINE 軟體內開啟此網頁以使用掃描功能");
-                return;
-            }
-
-            try {
-                // 🎯 調用 LINE 官方 2.0 最流暢的原生二維條碼解碼器
-                const result = await liff.scanCodeV2();
-                const qrText = result.value;
-
-                if (!qrText) return; // 使用者取消掃描則靜態退場
-
-                toggleLoading(true, "掃描成功，正將發票晶片數據送往財政部通道...");
-
-                const payload = {
-                    body: {
-                        events: [{
-                            source: { userId: REAL_USER_ID },
-                            message: { text: qrText } // 電子發票直接射出解碼字串
-                        }]
-                    }
-                };
-
-                await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify(payload)
-                });
-                
-                toggleLoading(true, "傳輸成功！正在關閉視窗...");
-                setTimeout(() => { liff.closeWindow(); }, 1000);
-
-            } catch (err) {
-                console.error("Scan error:", err);
-                // 避免使用者自行按返回鍵取消時噴錯，只有在非取消的真實錯誤時才跳出警告
-                if (err.message && !err.message.includes("cancel")) {
-                    alert("掃描功能啟動失敗：" + err.message);
-                }
-            }
         });
     </script>
 </body>
