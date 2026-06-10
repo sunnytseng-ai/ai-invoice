@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 拍拍中獎王</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .loading-spinner {
@@ -21,35 +21,33 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between p-6">
 
     <header class="text-center my-auto space-y-2">
-        <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">AI 拍拍中獎王</h1>
-        <p class="text-slate-400 text-sm">不分發票類型，拍照即可自動對獎</p>
+        <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">AI 拍拍中獎王</h1>
     </header>
 
     <main class="w-full max-w-sm mx-auto my-auto">
         
-        <label id="lblCapture" class="relative flex flex-col items-center justify-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-12 rounded-3xl h-56 transition duration-200 cursor-pointer group shadow-2xl">
+        <label id="lblCapture" class="relative flex flex-col items-center justify-center bg-slate-900/50 border-2 border-dashed border-slate-800 hover:border-purple-500/50 p-12 rounded-3xl h-56 transition duration-200 cursor-pointer group shadow-2xl">
             <input type="file" id="imageCapture" accept="image/*" capture="camera" class="hidden" disabled>
-            <div class="text-center space-y-3 pointer-events-none">
-                <div class="text-5xl group-hover:scale-110 transition duration-200">📸</div>
-                <div class="font-bold text-xl text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 選擇發票</div>
-                <div class="text-xs text-slate-500">支援傳統長條、電子發票證明聯</div>
+            <div class="text-center space-y-4 pointer-events-none">
+                <div class="text-5xl group-hover:scale-110 transition duration-200 text-slate-400 group-hover:text-purple-400">📸</div>
+                <div class="font-bold text-xl text-slate-200 group-hover:text-purple-300 transition duration-200">點我拍照</div>
             </div>
         </label>
 
     </main>
 
-    <footer class="text-center py-4 text-xs text-slate-600 tracking-widest">
-        SECURE ENCRYPTION PIPELINE
+    <footer class="text-center py-4 text-xs text-transparent select-none">
+        AI BALLOT PIPELINE
     </footer>
 
     <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
-        <p id="loadingText" class="text-sm font-medium text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
+        <p id="loadingText" class="text-sm font-medium text-purple-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
-    <script src="[https://static.line-scdn.net/liff/edge/2/sdk.js](https://static.line-scdn.net/liff/edge/2/sdk.js)"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const N8N_WEBHOOK_URL = '[https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning](https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning)';
+        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         
         let REAL_USER_ID = "";
