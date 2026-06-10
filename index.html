@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 拍拍中獎王 | 鏡頭發射台</title>
+    <title>AI 拍拍中獎王 | 拍拍發票入口</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .loading-spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            border-top: 4px solid #c084fc;
+            border-top: 4px solid #10b981;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
@@ -20,77 +19,64 @@
         #appLayout { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        
-        /* 讓實時鏡頭框格變圓角高質感 */
-        #qrLiveVideoContainer video { border-radius: 24px !important; object-fit: cover !important; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen select-none relative p-4 flex flex-col justify-between">
+<body class="bg-slate-950 text-slate-100 min-h-screen select-none p-6 flex flex-col justify-between">
 
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
         <div class="loading-spinner"></div>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-sm mx-auto">
-        <header class="text-center pt-6 space-y-1">
-            <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">影像拍拍對獎</h1>
-            <p class="text-[10px] text-slate-500 tracking-widest">LINE RICH-MENU CAPTURE PIPELINE</p>
+        <header class="text-center pt-4 space-y-1">
+            <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">影像拍拍對獎</h1>
+            <p class="text-slate-400 text-xs">LINE RICH-MENU CAPTURE PIPELINE</p>
         </header>
 
-        <main class="w-full my-auto space-y-4">
+        <main class="w-full my-auto space-y-5">
             
-            <div id="qrCamWrapper" class="bg-slate-900/80 border-2 border-purple-500/30 rounded-3xl p-4 shadow-2xl space-y-3 hidden animate-fadeIn">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                    <span class="text-xs font-black text-purple-400 tracking-wider">🎯 請對準發票「左邊」的 QRCode</span>
-                    <button id="btnStopQrCam" class="text-xs font-bold text-slate-500 hover:text-rose-400 px-2">✕ 取消</button>
-                </div>
-                <div id="qrLiveVideoContainer" class="w-full overflow-hidden rounded-2xl aspect-square bg-slate-950 border border-slate-800"></div>
-            </div>
-
-            <div id="mainButtonWrapper" class="space-y-4">
+            <div class="space-y-4">
                 
-                <label class="relative flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-6 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
-                    <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-3xl group-hover:scale-110 transition duration-200">📸</span>
+                <label class="relative flex items-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-2xl">
+                    <input type="file" id="imageCapture" accept="image/*" capture="camera" multiple class="hidden" disabled>
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <span class="text-4xl group-hover:scale-110 transition duration-200">📸</span>
                         <div class="text-left">
-                            <span class="block font-black text-base text-slate-200 group-hover:text-purple-300 transition">拍攝/上傳傳統長發票</span>
-                            <span class="block text-[10px] text-slate-500 font-medium">支援多張上傳 ➔ 智慧 AI 自動辨識</span>
+                            <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">支援多張上傳 ➔ 呼叫 Claude 智慧對獎</span>
                         </div>
                     </div>
                 </label>
 
-                <button id="btnStartQrScan" class="w-full flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-6 rounded-2xl transition duration-200 text-left group shadow-xl">
+                <button id="btnStartQrScan" class="w-full flex items-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-5 rounded-2xl transition duration-200 text-left group shadow-2xl">
                     <div class="flex items-center space-x-4">
-                        <span class="text-3xl group-hover:scale-110 transition duration-200">⚡</span>
+                        <span class="text-4xl group-hover:scale-110 transition duration-200">⚡</span>
                         <div>
-                            <span class="block font-black text-base text-slate-200 group-hover:text-purple-300 transition">拍攝電子 QRCode 發票</span>
-                            <span class="block text-[10px] text-slate-500 font-medium">相機對準左側 QRCode ➔ 秒速嗶嗶對獎</span>
+                            <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝電子 QRCode 發票</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">調用 LINE 官方相機 ➔ 嗶一聲極速對獎</span>
                         </div>
                     </div>
                 </button>
             </div>
 
-            <div id="resultPanel" class="bg-slate-900/60 border border-slate-900 rounded-3xl p-5 space-y-3 shadow-2xl hidden">
+            <div id="resultPanel" class="bg-slate-900/60 border border-slate-900 rounded-2xl p-4.5 space-y-3 shadow-2xl hidden">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-xs font-black tracking-widest text-purple-400">⚡ 即時對獎報告明細</span>
+                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時對獎報告明細</span>
                     <span id="resultCount" class="text-xs font-mono text-slate-500">0張發票</span>
                 </div>
                 <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-sm font-medium"></div>
             </div>
         </main>
 
-        <footer class="text-center py-4 text-xs font-mono text-slate-600 select-none">
-            RICH-MENU GATEWAY SYSTEM READY
+        <footer class="text-center py-4 text-xs text-slate-600 tracking-widest">
+            SECURE ENCRYPTION PIPELINE
         </footer>
     </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
-        <p id="loadingText" class="text-sm font-medium text-purple-400 tracking-widest animate-pulse">正在透過分流跑道對獎中...</p>
+        <p id="loadingText" class="text-sm font-medium text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
-
-    <div id="qrScannerNode" class="hidden"></div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
@@ -98,16 +84,16 @@
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "TEST_USER_DEV";
         let processedCount = 0;
-        let html5QrCode = null;
+        let isLineEnv = false;
 
         document.addEventListener("DOMContentLoaded", () => {
-            html5QrCode = new Html5Qrcode("qrLiveVideoContainer");
-
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                isLineEnv = false;
                 unlockUI();
                 return;
             }
             liff.init({ liffId: LIFF_ID }).then(() => {
+                isLineEnv = true;
                 if (!liff.isLoggedIn()) { liff.login(); } 
                 else {
                     liff.getProfile().then(profile => { REAL_USER_ID = profile.userId; unlockUI(); })
@@ -122,74 +108,66 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        function toggleLoading(show, text = "") {
+        function toggleLoading(show, text = "正在精準傳輸數據...") {
             const overlay = document.getElementById('loadingOverlay');
             document.getElementById('loadingText').innerText = text;
             overlay.classList.toggle('hidden', !show);
         }
 
         // =======================================================
-        // 🔵 拍攝電子 QRCode 發票：開啟實時相機嗶嗶掃描器
+        // 🔵 跑道 2：⚡ 呼叫 LINE 官方原生超高速 scanCodeV2 條碼槍
         // =======================================================
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
-            document.getElementById('mainButtonWrapper').classList.add('hidden');
-            document.getElementById('qrCamWrapper').classList.remove('hidden');
+            if (!isLineEnv) {
+                const mockData = prompt("【MVP 測試提示】目前不在 LINE 環境中。請手動貼上電子發票左側 QRCode 的真實解碼字串進行測試：\n(例如：AJ078016151150605...)");
+                if (mockData) { fireQrCodeResult(mockData); }
+                return;
+            }
 
-            const config = { fps: 20, qrbox: { width: 220, height: 220 } };
-
-            try {
-                await html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config,
-                    async (decodedText) => {
-                        html5QrCode.stop();
-                        document.getElementById('qrCamWrapper').classList.add('hidden');
-                        document.getElementById('mainButtonWrapper').classList.remove('hidden');
-                        
-                        toggleLoading(true, "電子發票解碼成功！高鐵直達對獎中...");
-
-                        try {
-                            const res = await fetch(N8N_WEBHOOK_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                                body: JSON.stringify({
-                                    body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: "QR_DECODED:" + decodedText } }] }
-                                })
-                            });
-                            if (res.ok) {
-                                let bulkResults = await res.json();
-                                if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
-                                renderResults(bulkResults);
-                            }
-                        } catch (err) {
-                            renderResults([{ status: "error", reason: "503", 發票字軌與號碼: "未知" }]);
-                        } finally {
-                            toggleLoading(false);
-                        }
-                    },
-                    (errorMessage) => { }
-                );
-            } catch (err) {
-                alert("相機啟動失敗，請確認是否給予相機權限。");
-                stopQrCamera();
+            if (liff.scanCodeV2) {
+                liff.scanCodeV2().then(async (result) => {
+                    if (result.value) {
+                        fireQrCodeResult(result.value);
+                    }
+                }).catch((err) => {
+                    console.error("LINE Scan failed:", err);
+                    alert("掃描遭取消，或請確認 LINE Developer 後台的 Scan Code 權限是否有打勾開啟。");
+                });
+            } else {
+                alert("目前 LINE 版本不支援 scanCodeV2 接口。");
             }
         });
 
-        document.getElementById('btnStopQrCam').addEventListener('click', stopQrCamera);
-
-        function stopQrCamera() {
-            if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop(); }
-            document.getElementById('qrCamWrapper').classList.add('hidden');
-            document.getElementById('mainButtonWrapper').classList.remove('hidden');
+        async function fireQrCodeResult(decodedText) {
+            toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
+            try {
+                const res = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({
+                        body: { events: [{ source: { userId: REAL_USER_ID }, message: { text: "QR_DECODED:" + decodedText } }] }
+                    })
+                });
+                if (res.ok) {
+                    let bulkResults = await res.json();
+                    if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                    renderResults(bulkResults);
+                    toggleLoading(true, "對獎完成！");
+                    setTimeout(() => { toggleLoading(false); }, 1000);
+                }
+            } catch (err) {
+                renderResults([{ status: "error", reason: "503", 發票字軌與號碼: "未知" }]);
+                toggleLoading(false);
+            }
         }
 
         // =======================================================
-        // 🟢 傳統發票拍照/上傳核心：走 Base64 直上 Claude AI
+        // 🟢 跑道 1：📸 傳統發票純相機優化流 (100% 傳承早上原汁原味)
         // =======================================================
         function processTraditionalImage(file, index, total) {
             return new Promise((resolve) => {
                 const currentNum = index + 1;
-                toggleLoading(true, `正在優化第 ${currentNum}/${total} 張傳統發票影像...`);
+                toggleLoading(true, `正在優化發票影像品質 (${currentNum}/${total})...`);
 
                 const reader = new FileReader();
                 reader.onload = (event) => {
@@ -211,7 +189,7 @@
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                         const base64Image = compressedDataUrl.split(',')[1];
                         
-                        toggleLoading(true, `Claude 正在核對第 ${currentNum}/${total} 張傳統發票...`);
+                        toggleLoading(true, `影像優化完畢，正在送往 AI 大腦對獎 (${currentNum}/${total})...`);
 
                         try {
                             const res = await fetch(N8N_WEBHOOK_URL, {
@@ -250,10 +228,12 @@
             for (let i = 0; i < totalFiles; i++) {
                 await processTraditionalImage(files[i], i, totalFiles);
             }
-            toggleLoading(false);
+            toggleLoading(true, "全部傳統發票對獎完成！");
+            setTimeout(() => { toggleLoading(false); }, 1200);
             e.target.value = ""; 
         });
 
+        // 🎯 瀑布流結果渲染卡片
         function renderResults(items) {
             const panel = document.getElementById('resultPanel');
             const box = document.getElementById('resultBox');
@@ -261,37 +241,3 @@
             panel.classList.remove('hidden');
 
             items.forEach(rawItem => {
-                processedCount++;
-                countBadge.innerText = `${processedCount} 張發票`;
-                const data = rawItem.json ? rawItem.json : rawItem;
-                const card = document.createElement('div');
-                card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
-                
-                if (data.status === "success" || data.發票字軌與號碼) {
-                    card.classList.add('border-emerald-950/60', 'text-emerald-400');
-                    card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-500 font-mono text-[10px]">${data.發票期別 || ''} | 成功 (${data.發票輸入方式 || '圖片'})</span>
-                        </div>
-                        <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
-                    `;
-                } else {
-                    card.classList.add('border-rose-950/60', 'text-rose-400');
-                    let errMsg = "影像模糊不清";
-                    if (data.reason === "503") errMsg = "AI 大腦塞車中";
-                    if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
-                    card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <span class="font-black block text-slate-400">❌ 讀取失敗</span>
-                            <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
-                        </div>
-                        <div class="text-xs font-bold text-rose-500 text-right">${errMsg}</div>
-                    `;
-                }
-                box.insertBefore(card, box.firstChild);
-            });
-        }
-    </script>
-</body>
-</html>
