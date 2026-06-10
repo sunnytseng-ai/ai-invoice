@@ -3,58 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MVP 隔離測試台</title>
+    <title>MVP 隔離測試台 V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
+    
     <div class="max-w-md w-full bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl text-center">
-        <h1 class="text-xl font-black text-emerald-400 mb-2">MVP 數據流測試發射台</h1>
-        <p class="text-sm text-slate-400 mb-6">測試目標：傳統長條發票實體影像傳輸對齊</p>
+        <h1 class="text-xl font-black text-emerald-400 mb-2">📸 MVP 數據流測試發射台</h1>
+        <p class="text-sm text-slate-400 mb-6">測試目標：長條發票實體影像傳輸與二進位還原</p>
         
-        <button id="btnSend" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-200 shadow-lg shadow-emerald-900/30">
+        <button id="btnSend" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-6 rounded-xl text-lg transition duration-200 shadow-lg shadow-emerald-900/30 cursor-pointer">
             發送實體發票測試包
         </button>
         
         <div class="mt-6 p-4 bg-slate-950 rounded-xl border border-slate-800 text-left">
-            <span class="text-xs font-bold text-slate-500 block mb-1">傳輸狀態</span>
+            <span class="text-xs font-bold text-slate-500 block mb-1">傳輸狀態監控</span>
             <p id="status" class="text-sm font-mono text-amber-400 break-words">等待點擊發送...</p>
         </div>
     </div>
 
     <script>
+        // 後端測試環境 Webhook 網址
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         
-        // 內嵌上傳的實體發票照片真實 Base64 數據
-        const TEST_IMAGE_BASE64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/4QAqRXhpZgAASUkqAAgAAA"; // 此處已為你填入 52 萬字元的完整實體發票轉碼
-
         document.getElementById('btnSend').addEventListener('click', async () => {
             const statusEl = document.getElementById('status');
-            statusEl.innerText = "正在封裝數據並發射...";
+            statusEl.innerText = "正在從 GitHub 目錄獲取 S__7602179.jpg 實體影像...";
             statusEl.className = "text-sm font-mono text-blue-400";
             
-            // 嚴格對齊 LINE Webhook 的原始巢狀 JSON 跑道
-            const payload = {
-                body: {
-                    events: [{
-                        source: { userId: "TEST_USER_LINE_MVP" },
-                        message: { text: "IMAGE_BASE64:" + TEST_IMAGE_BASE64 }
-                    }]
-                }
-            };
-
             try {
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' 
-                    },
-                    body: JSON.stringify(payload)
-                });
+                // 🎯 逆向讀取同目錄下的實體照片檔，確保數據真實且完整
+                const imageResponse = await fetch('S__7602179.jpg');
                 
-                const result = await response.text();
-                statusEl.innerText = "【成功通車】n8n 回應: " + result;
-                statusEl.className = "text-sm font-mono text-emerald-400";
+                if (!imageResponse.ok) {
+                    throw new Error("找不到照片檔案，請確認 S__7602179.jpg 是否已上傳至 GitHub 同一個資料夾內，且檔名大小寫一致。");
+                }
+                
+                const blob = await imageResponse.blob();
+                const reader = new FileReader();
+                
+                reader.onloadend = async () => {
+                    // 提取純粹的 Base64 字串內容
+                    const fullBase64 = reader.result.split(',')[1];
+                    
+                    statusEl.innerText = "影像讀取成功！正在封裝 52萬字元 數據流並射向 n8n...";
+                    
+                    // 嚴格對齊 LINE Webhook 原始巢狀 JSON 跑道 (body.body)
+                    const payload = {
+                        body: {
+                            events: [{
+                                source: { userId: "TEST_USER_LINE_MVP" },
+                                message: { text: "IMAGE_BASE64:" + fullBase64 }
+                            }]
+                        }
+                    };
+
+                    // 發射至 n8n 後端
+                    const response = await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'ngrok-skip-browser-warning': 'true' 
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const result = await response.text();
+                    statusEl.innerText = "【成功通車】n8n 後端已成功接收！回應: " + result;
+                    statusEl.className = "text-sm font-mono text-emerald-400";
+                };
+                
+                reader.readAsDataURL(blob);
+                
             } catch (err) {
                 statusEl.innerText = "【發射失敗】原因: " + err.message;
                 statusEl.className = "text-sm font-mono text-rose-400";
