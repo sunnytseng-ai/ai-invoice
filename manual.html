@@ -73,7 +73,7 @@
                     <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時對獎報告明細</span>
                 </div>
                 <div id="resultBox" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    </div>
+                </div>
             </div>
 
             <div id="manifestPanel" class="bg-slate-900/40 border border-slate-900/60 rounded-3xl p-4 space-y-3 shadow-2xl hidden">
@@ -82,7 +82,7 @@
                     <span id="manifestCount" class="text-xs font-mono text-slate-500">0張發票</span>
                 </div>
                 <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    </div>
+                </div>
                 
                 <button id="btnSubmitAll" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3.5 px-4 rounded-2xl text-sm tracking-widest transition duration-200 shadow-lg shadow-purple-950/40">
                     🔥 點我一口氣全部對獎！
@@ -107,6 +107,7 @@
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "TEST_USER_DEV";
+        let REAL_DISPLAY_NAME = "測試長輩";
         let invoiceList = []; 
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -117,8 +118,12 @@
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); } 
                 else {
-                    liff.getProfile().then(profile => { REAL_USER_ID = profile.userId; unlockUI(); })
-                        .catch(err => { console.error(err); unlockUI(); });
+                    liff.getProfile().then(profile => { 
+                        REAL_USER_ID = profile.userId; 
+                        REAL_DISPLAY_NAME = profile.displayName;
+                        unlockUI(); 
+                    })
+                    .catch(err => { console.error(err); unlockUI(); });
                 }
             }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
         });
@@ -227,7 +232,10 @@
                     body: JSON.stringify({
                         body: {
                             events: [{
-                                source: { userId: REAL_USER_ID },
+                                source: { 
+                                    userId: REAL_USER_ID,
+                                    displayName: REAL_DISPLAY_NAME
+                                },
                                 message: { text: JSON.stringify(invoiceList) } 
                             }]
                         }
@@ -268,7 +276,7 @@
                         <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '手動輸入'}</span>
                         <span class="text-slate-500 font-mono text-[10px]">手動輸入 | 對獎完成</span>
                     </div>
-                    <div class="text-sm font-black text-emerald-400">${data.中獎金額 ? `🎉 中 ${data.中獎金額}元` : '未中獎 😮'}</div>
+                    <div class="text-sm font-black text-emerald-400">${data.金額 ? `🎉 中 ${data.金額}元` : '未中獎 😮'}</div>
                 `;
                 box.insertBefore(card, box.firstChild);
             });
