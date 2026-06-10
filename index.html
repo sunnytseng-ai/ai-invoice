@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 拍拍中獎王</title>
+    <title>AI 拍拍中獎王 | 鏡頭發射台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
@@ -32,9 +32,9 @@
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-sm mx-auto">
-        <header class="text-center pt-4 space-y-1">
-            <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">AI 拍拍中獎王</h1>
-            <p class="text-[10px] text-slate-500 tracking-widest">PHYSICAL SPLIT PIPELINE</p>
+        <header class="text-center pt-6 space-y-1">
+            <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">影像拍拍對獎</h1>
+            <p class="text-[10px] text-slate-500 tracking-widest">LINE RICH-MENU CAPTURE PIPELINE</p>
         </header>
 
         <main class="w-full my-auto space-y-4">
@@ -49,7 +49,7 @@
 
             <div id="mainButtonWrapper" class="space-y-4">
                 
-                <label class="relative flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
+                <label class="relative flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-6 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
                     <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
                     <div class="flex items-center space-x-4">
                         <span class="text-3xl group-hover:scale-110 transition duration-200">📸</span>
@@ -60,7 +60,7 @@
                     </div>
                 </label>
 
-                <button id="btnStartQrScan" class="w-full flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
+                <button id="btnStartQrScan" class="w-full flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-6 rounded-2xl transition duration-200 text-left group shadow-xl">
                     <div class="flex items-center space-x-4">
                         <span class="text-3xl group-hover:scale-110 transition duration-200">⚡</span>
                         <div>
@@ -69,16 +69,6 @@
                         </div>
                     </div>
                 </button>
-
-                <a href="./manual.html" class="w-full flex items-center bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
-                    <div class="flex items-center space-x-4">
-                        <span class="text-3xl group-hover:scale-110 transition duration-200">🎰</span>
-                        <div>
-                            <span class="block font-black text-base text-slate-200 group-hover:text-purple-300 transition">發票手動補登入口</span>
-                            <span class="block text-[10px] text-slate-500 font-medium">特大字體 ➔ 單手拉幫結派補登</span>
-                        </div>
-                    </div>
-                </a>
             </div>
 
             <div id="resultPanel" class="bg-slate-900/60 border border-slate-900 rounded-3xl p-5 space-y-3 shadow-2xl hidden">
@@ -86,12 +76,12 @@
                     <span class="text-xs font-black tracking-widest text-purple-400">⚡ 即時對獎報告明細</span>
                     <span id="resultCount" class="text-xs font-mono text-slate-500">0張發票</span>
                 </div>
-                <div id="resultBox" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-sm font-medium"></div>
+                <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-sm font-medium"></div>
             </div>
         </main>
 
         <footer class="text-center py-4 text-xs font-mono text-slate-600 select-none">
-            PHYSICAL SPLIT RUNWAY COMPLETE
+            RICH-MENU GATEWAY SYSTEM READY
         </footer>
     </div>
 
@@ -100,13 +90,15 @@
         <p id="loadingText" class="text-sm font-medium text-purple-400 tracking-widest animate-pulse">正在透過分流跑道對獎中...</p>
     </div>
 
+    <div id="qrScannerNode" class="hidden"></div>
+
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "TEST_USER_DEV";
         let processedCount = 0;
-        let html5QrCode = null; // 實時相機實例
+        let html5QrCode = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             html5QrCode = new Html5Qrcode("qrLiveVideoContainer");
@@ -137,7 +129,7 @@
         }
 
         // =======================================================
-        // 🔵 (2) 拍攝電子 QRCode 發票核心：開啟動態相機刷卡機流
+        // 🔵 拍攝電子 QRCode 發票：開啟實時相機嗶嗶掃描器
         // =======================================================
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             document.getElementById('mainButtonWrapper').classList.add('hidden');
@@ -146,12 +138,10 @@
             const config = { fps: 20, qrbox: { width: 220, height: 220 } };
 
             try {
-                // 啟動手機後置鏡頭，開始像條碼槍一樣實時「捕捉」
                 await html5QrCode.start(
                     { facingMode: "environment" }, 
                     config,
                     async (decodedText) => {
-                        // 🎯 只要鏡頭一咬到 QRCode 字串，當場震動/停止相機，發射給後端！
                         html5QrCode.stop();
                         document.getElementById('qrCamWrapper').classList.add('hidden');
                         document.getElementById('mainButtonWrapper').classList.remove('hidden');
@@ -177,7 +167,7 @@
                             toggleLoading(false);
                         }
                     },
-                    (errorMessage) => { /* 實時尋找中，忽略噪音 */ }
+                    (errorMessage) => { }
                 );
             } catch (err) {
                 alert("相機啟動失敗，請確認是否給予相機權限。");
@@ -185,7 +175,6 @@
             }
         });
 
-        // ✕ 取消實時掃描
         document.getElementById('btnStopQrCam').addEventListener('click', stopQrCamera);
 
         function stopQrCamera() {
@@ -195,7 +184,7 @@
         }
 
         // =======================================================
-        // 🟢 (1) 傳統發票拍照/上傳核心：純拍照不啟動探測，直上 Claude
+        // 🟢 傳統發票拍照/上傳核心：走 Base64 直上 Claude AI
         // =======================================================
         function processTraditionalImage(file, index, total) {
             return new Promise((resolve) => {
@@ -265,7 +254,6 @@
             e.target.value = ""; 
         });
 
-        // 🎯 共通：瀑布流卡片渲染 (去殼防彈衣)
         function renderResults(items) {
             const panel = document.getElementById('resultPanel');
             const box = document.getElementById('resultBox');
