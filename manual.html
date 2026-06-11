@@ -65,4 +65,252 @@
             
             <div id="resultPanel" class="bg-slate-900/60 border border-slate-900 rounded-3xl p-4 space-y-3 shadow-2xl hidden">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時
+                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時對獎報告明細</span>
+                </div>
+                <div id="resultBox" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div id="manifestPanel" class="bg-slate-900/40 border border-slate-900/60 rounded-3xl p-4 space-y-3 shadow-2xl hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-xs font-black tracking-widest text-purple-400">📋 準備送出對獎清單</span>
+                    <span id="manifestCount" class="text-xs font-mono text-slate-500">0張發票</span>
+                </div>
+                <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                
+                <button id="btnSubmitAll" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3.5 px-4 rounded-2xl text-sm tracking-widest transition duration-200 shadow-lg shadow-purple-950/40">
+                    🔥 點我一口氣全部對獎！
+                </button>
+            </div>
+        </div>
+
+        <footer class="text-center py-3 border-t border-slate-900 mt-1 select-none">
+            <a href="./index.html" class="inline-block text-purple-500 hover:underline text-sm md:text-base font-extrabold tracking-wider py-1">
+                📸 切換回拍照對獎模式
+            </a>
+        </footer>
+    </div>
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
+        <div class="loading-spinner"></div>
+        <p class="text-sm font-medium text-purple-400 tracking-widest animate-pulse">正在透過高鐵通道對獎中...</p>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
+        const LIFF_ID = '2010235526-CeuGpVfZ'; 
+        let REAL_USER_ID = "TEST_USER_DEV";
+        let REAL_DISPLAY_NAME = "測試長輩";
+        let invoiceList = []; 
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initDynamicPeriods();
+
+            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                unlockUI();
+                return;
+            }
+            liff.init({ liffId: LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) { liff.login(); } 
+                else {
+                    liff.getProfile().then(profile => { 
+                        REAL_USER_ID = profile.userId; 
+                        REAL_DISPLAY_NAME = profile.displayName;
+                        unlockUI(); 
+                    })
+                    .catch(err => { console.error(err); unlockUI(); });
+                }
+            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+        });
+
+        function unlockUI() {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
+        }
+
+        // 📅 2.0 動態民國雙雙月期別精準注入大腦（已完全修正括號閉合）
+        function initDynamicPeriods() {
+            const periodSelect = document.getElementById('inputPeriod');
+            const d = new Date();
+            let twYear = d.getFullYear() - 1911;
+            let month = d.getMonth() + 1; 
+
+            let currentPeriodMonth = (month % 2 === 1) ? month : month - 1;
+
+            function generatePeriodStrAndLabel(monthOffset) {
+                let pMonth = currentPeriodMonth - monthOffset;
+                let pYear = twYear;
+                if (pMonth <= 0) { pMonth += 12; pYear -= 1; }
+                
+                const valueStr = `${pYear}${String(pMonth).padStart(2, '0')}`;
+                const endMonth = pMonth + 1;
+                const labelStr = `${pYear}年${String(pMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                return { value: valueStr, label: labelStr };
+            }
+
+            periodSelect.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                const period = generatePeriodStrAndLabel(i * 2);
+                const opt = document.createElement('option');
+                opt.value = period.value;
+                opt.innerText = period.label;
+                periodSelect.appendChild(opt);
+            }
+        }
+
+        document.getElementById('inputTrack').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+        });
+        document.getElementById('inputNumber').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        document.getElementById('btnAddInvoice').addEventListener('click', () => {
+            const trackInput = document.getElementById('inputTrack');
+            const numInput = document.getElementById('inputNumber');
+            const periodSelect = document.getElementById('inputPeriod');
+            
+            const finalTrack = trackInput.value.trim().toUpperCase();
+            const finalNum = numInput.value.trim();
+
+            if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
+            if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
+
+            const invoiceItem = {
+                "status": "success",
+                "reason": "",
+                "發票字軌與號碼": finalTrack + "-" + finalNum, 
+                "發票號碼": finalNum,
+                "發票期別": periodSelect.value, 
+                "發票輸入方式": "手動輸入"
+            };
+
+            invoiceList.push(invoiceItem);
+            renderManifestList();
+
+            trackInput.value = "";
+            numInput.value = "";
+            trackInput.focus();
+        });
+
+        function renderManifestList() {
+            const panel = document.getElementById('manifestPanel');
+            const box = document.getElementById('manifestBox');
+            const countBadge = document.getElementById('manifestCount');
+            
+            box.innerHTML = "";
+            if (invoiceList.length === 0) { panel.classList.add('hidden'); return; }
+
+            panel.classList.remove('hidden');
+            countBadge.innerText = `${invoiceList.length} 張發票`;
+
+            invoiceList.forEach((item, index) => {
+                const year = item.發票期別.substring(0, 3);
+                const startM = parseInt(item.發票期別.substring(3, 5), 10);
+                const endM = startM + 1;
+                const displayPeriod = `${year}年${String(startM).padStart(2, '0')}-${String(endM).padStart(2, '0')}月`;
+
+                const row = document.createElement('div');
+                row.className = "p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800 flex items-center justify-between text-base md:text-lg font-bold tracking-wide animate-fadeIn shadow-inner";
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <span class="text-purple-400 font-black text-xs">${displayPeriod}</span>
+                        <span class="text-slate-100 font-black tracking-widest text-lg">${item.發票字軌與號碼}</span>
+                    </div>
+                    <button onclick="removeInvoice(${index})" class="text-slate-500 hover:text-rose-400 font-sans transition text-xl px-2">✕</button>
+                `;
+                box.appendChild(row); 
+            });
+        }
+
+        window.removeInvoice = function(index) {
+            invoiceList.splice(index, 1);
+            renderManifestList();
+        };
+
+        document.getElementById('btnSubmitAll').addEventListener('click', async () => {
+            if (invoiceList.length === 0) return;
+            
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+
+            try {
+                const res = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({
+                        body: {
+                            events: [{
+                                source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
+                                message: { text: JSON.stringify(invoiceList) } 
+                            }]
+                        }
+                    })
+                });
+
+                if (!res.ok) throw new Error("分流通道異常");
+
+                let bulkResults = await res.json();
+                if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+
+                renderFinalResults(bulkResults);
+
+                invoiceList = [];
+                renderManifestList();
+            } catch (err) {
+                alert("對獎失敗，請確認網路連線或後端分流開關。");
+            } finally {
+                overlay.classList.add('hidden');
+            }
+        });
+
+        function renderFinalResults(items) {
+            const panel = document.getElementById('resultPanel');
+            const box = document.getElementById('resultBox');
+            panel.classList.remove('hidden');
+            box.innerHTML = "";
+
+            items.forEach(rawItem => {
+                const data = rawItem.json ? rawItem.json : rawItem;
+                const card = document.createElement('div');
+                
+                let displayPeriod = "期別格式錯誤";
+                if (data.發票期別 && data.發票期別.length === 5) {
+                    const year = data.發票期別.substring(0, 3);
+                    const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    const startMonth = endMonth - 1;
+                    displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                }
+
+                let statusColorClass = "border-slate-800 text-slate-400";
+                let rightSideHtml = "";
+
+                if (data.狀態 === "中獎") {
+                    statusColorClass = "border-amber-500/50 text-amber-400 bg-amber-950/10";
+                    rightSideHtml = `<div class="text-right"><span class="text-xs bg-amber-500/20 px-1.5 py-0.5 rounded font-black tracking-widest text-amber-400">🎉 ${data.狀態}</span><div class="text-sm font-black mt-1 text-amber-300">+${data.金額} 元</div></div>`;
+                } else if (data.狀態 === "未中獎") {
+                    statusColorClass = "border-rose-950/40 text-rose-400/80 bg-rose-950/5";
+                    rightSideHtml = `<div class="text-right"><span class="text-xs bg-rose-950/60 px-1.5 py-0.5 rounded font-bold text-rose-400/70">😮 ${data.狀態}</span></div>`;
+                } else if (data.狀態 === "尚未開獎") {
+                    statusColorClass = "border-blue-900/40 text-blue-400 bg-blue-950/10";
+                    rightSideHtml = `<div class="text-right"><span class="text-xs bg-blue-950/60 px-1.5 py-0.5 rounded font-bold text-blue-400">⏳ ${data.狀態}</span></div>`;
+                } else if (data.狀態 === "已逾期") {
+                    statusColorClass = "border-slate-900 text-slate-500 bg-slate-900/10";
+                    rightSideHtml = `<div class="text-right"><span class="text-xs bg-slate-900 px-1.5 py-0.5 rounded font-bold text-slate-500">📴 ${data.狀態}</span></div>`;
+                }
+
+                card.className = `p-3 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                card.innerHTML = `
+                    <div class="text-xs space-y-0.5 text-left">
+                        <span class="font-black block text-slate-200 text-base tracking-widest">📄 ${data.發票字軌與號碼 || '手動輸入'}</span>
+                        <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
+                        <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '手動輸入'} | 對獎完成</span>
+                    </div>
+                    ${rightSideHtml}
+                `;
+                box.insertBefore(card, box.firstChild);
+            });
+        }
+    </script>
+</body>
+</html>
