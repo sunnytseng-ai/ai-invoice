@@ -19,8 +19,6 @@
         #appLayout { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-        
-        /* 隱藏滾動條但保持滾動功能 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -43,10 +41,7 @@
                 <div>
                     <label class="block text-[11px] font-black tracking-widest text-slate-400 mb-1">📅 發票期別</label>
                     <select id="inputPeriod" class="w-full bg-slate-950 border border-slate-800 text-purple-300 rounded-xl py-2.5 px-4 text-sm font-bold focus:outline-none focus:border-purple-500 transition">
-                        <option value="11508">115年07期</option>
-                        <option value="11506">115年05期</option>
-                        <option value="11504">115年03期</option>
-                    </select>
+                        </select>
                 </div>
 
                 <div class="grid grid-cols-12 gap-2">
@@ -72,8 +67,7 @@
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時對獎報告明細</span>
                 </div>
-                <div id="resultBox" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                </div>
+                <div id="resultBox" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
             </div>
 
             <div id="manifestPanel" class="bg-slate-900/40 border border-slate-900/60 rounded-3xl p-4 space-y-3 shadow-2xl hidden">
@@ -81,8 +75,7 @@
                     <span class="text-xs font-black tracking-widest text-purple-400">📋 準備送出對獎清單</span>
                     <span id="manifestCount" class="text-xs font-mono text-slate-500">0張發票</span>
                 </div>
-                <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                </div>
+                <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
                 
                 <button id="btnSubmitAll" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black py-3.5 px-4 rounded-2xl text-sm tracking-widest transition duration-200 shadow-lg shadow-purple-950/40">
                     🔥 點我一口氣全部對獎！
@@ -111,6 +104,8 @@
         let invoiceList = []; 
 
         document.addEventListener("DOMContentLoaded", () => {
+            initDynamicPeriods();
+
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
                 unlockUI();
                 return;
@@ -133,7 +128,38 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 限制格式輸入
+        // 📅 財政部標準民國雙月制核心：動態計算最新 3 期標準單數月傳輸晶片
+        function initDynamicPeriods() {
+            const periodSelect = document.getElementById('inputPeriod');
+            const d = new Date();
+            let twYear = d.getFullYear() - 1911;
+            let month = d.getMonth() + 1; 
+
+            // 剛性校準當期起始單數月
+            let currentPeriodMonth = (month % 2 === 1) ? month : month - 1;
+
+            function generatePeriodStrAndLabel(monthOffset) {
+                let pMonth = currentPeriodMonth - monthOffset;
+                let pYear = twYear;
+                if (pMonth <= 0) { pMonth += 12; pYear -= 1; }
+                
+                const valueStr = `${pYear}${String(pMonth).padStart(2, '0')}`;
+                const endMonth = pMonth + 1;
+                const labelStr = `${pYear}年${String(pMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                return { value: valueStr, label: labelStr };
+            }
+
+            periodSelect.innerHTML = "";
+            for (let i = 0; i < 3; i++) {
+                const period = generatePeriodStrAndLabel(i * 2);
+                const opt = document.createElement('option');
+                opt.value = period.value;
+                opt.innerText = period.label;
+                periodSelect.appendChild(opt);
+            }
+        }
+
+        // 格式輸入限制
         document.getElementById('inputTrack').addEventListener('input', function(e) {
             this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
         });
@@ -150,61 +176,49 @@
             const finalTrack = trackInput.value.trim().toUpperCase();
             const finalNum = numInput.value.trim();
 
-            if (finalTrack.length !== 2) {
-                alert("字軌必須是 2 碼英文喔！（例如：AJ）");
-                trackInput.focus();
-                return;
-            }
-
-            if (finalNum.length !== 8) {
-                alert("發票號碼必須是 8 碼數字喔！（例如：07801615）");
-                numInput.focus();
-                return;
-            }
+            if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
+            if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
 
             const invoiceItem = {
                 "status": "success",
                 "reason": "",
                 "發票字軌與號碼": finalTrack + finalNum,
                 "發票號碼": finalNum,
-                "發票期別": periodSelect.value,
+                "發票期別": periodSelect.value, // 標準民國單數月字串（例如 11505）
                 "發票輸入方式": "手動輸入"
             };
 
             invoiceList.push(invoiceItem);
             renderManifestList();
 
-            // 僅清空字軌與號碼，聚焦回字軌方便長輩連續輸入
             trackInput.value = "";
             numInput.value = "";
             trackInput.focus();
         });
 
-        // 📋 渲染待對獎清單 (巨無霸字體與寬敞行高)
+        // 📋 渲染待對獎清單
         function renderManifestList() {
             const panel = document.getElementById('manifestPanel');
             const box = document.getElementById('manifestBox');
             const countBadge = document.getElementById('manifestCount');
             
             box.innerHTML = "";
-            if (invoiceList.length === 0) {
-                panel.classList.add('hidden');
-                return;
-            }
+            if (invoiceList.length === 0) { panel.classList.add('hidden'); return; }
 
             panel.classList.remove('hidden');
             countBadge.innerText = `${invoiceList.length} 張發票`;
 
             invoiceList.forEach((item, index) => {
                 const year = item.發票期別.substring(0, 3);
-                const rawMonth = item.發票期別.substring(3, 5);
-                const displayMonth = String(parseInt(rawMonth) - 1).padStart(2, '0') + "期";
+                const startM = parseInt(item.發票期別.substring(3, 5));
+                const endM = startM + 1;
+                const displayPeriod = `${year}年${String(startM).padStart(2, '0')}-${String(endM).padStart(2, '0')}月`;
 
                 const row = document.createElement('div');
                 row.className = "p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800 flex items-center justify-between text-base md:text-lg font-bold tracking-wide animate-fadeIn shadow-inner";
                 row.innerHTML = `
                     <div class="flex items-center space-x-3.5">
-                        <span class="text-purple-400 font-black text-sm">${year}年${displayMonth}</span>
+                        <span class="text-purple-400 font-black text-xs">${displayPeriod}</span>
                         <span class="text-slate-100 font-black tracking-widest text-lg">${item.發票字軌與號碼}</span>
                     </div>
                     <button onclick="removeInvoice(${index})" class="text-slate-500 hover:text-rose-400 font-sans transition text-xl px-2">✕</button>
@@ -218,7 +232,7 @@
             renderManifestList();
         };
 
-        // 🚀 一口氣發射包裝好的 JSON 陣列給 B 軌道
+        // 🚀 一口氣發射包增好的 JSON 陣列給 B 軌道
         document.getElementById('btnSubmitAll').addEventListener('click', async () => {
             if (invoiceList.length === 0) return;
             
@@ -249,7 +263,6 @@
 
                 renderFinalResults(bulkResults);
 
-                // 對完獎後，清空清單
                 invoiceList = [];
                 renderManifestList();
             } catch (err) {
