@@ -19,12 +19,40 @@
         #appLayout { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+        
+        /* ⚡ 方案 A 專屬：動態雷射掃描線視覺制約元件 */
+        @keyframes laserScan {
+            0% { top: 0%; opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0.3; }
+        }
+        .laser-line {
+            animation: laserScan 2s linear infinite;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen select-none p-6 flex flex-col justify-between">
 
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
         <div class="loading-spinner"></div>
+    </div>
+
+    <div id="qrScannerGuidance" class="fixed inset-0 bg-slate-950/80 z-40 hidden flex flex-col items-center justify-between p-8 animate-fadeIn">
+        <div class="text-center pt-8 space-y-2">
+            <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-black tracking-widest">📸 2.0 智慧光學防呆模式</span>
+            <p class="text-slate-200 text-sm font-bold">請將鏡頭「拉近」，只把<span class="text-emerald-400 font-black underline decoration-2">左邊英文字軌碼</span>放入下方窄框</p>
+        </div>
+
+        <div class="relative w-48 h-48 border-4 border-emerald-500 rounded-3xl bg-slate-950/20 shadow-[0_0_30px_rgba(16,185,129,0.3)] overflow-hidden">
+            <div class="laser-line absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_10px_#10b981]"></div>
+            <div class="absolute top-2 left-2 text-emerald-400/40 text-xs font-mono select-none">🔑 LEFT_ONLY</div>
+        </div>
+
+        <div class="w-full max-w-xs pb-12">
+            <button id="btnCancelScan" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 font-black py-3 rounded-2xl text-sm tracking-widest transition">
+                ✕ 取消並返回
+            </button>
+        </div>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-sm mx-auto">
@@ -51,7 +79,7 @@
                         <span class="text-4xl group-hover:scale-110 transition duration-200">⚡</span>
                         <div>
                             <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝電子 QRCode 發票</span>
-                            <span class="block text-[11px] text-slate-500 mt-0.5">調用 LINE 官方相機 ➔ 嗶一聲極速對獎</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">調用 2.0 視覺防呆引導 ➔ 極速對獎</span>
                         </div>
                     </div>
                 </button>
@@ -91,25 +119,17 @@
                 unlockUI();
                 return;
             }
-            
             liff.init({ liffId: LIFF_ID }).then(() => {
                 isLineEnv = true;
-                if (!liff.isLoggedIn()) { 
-                    liff.login(); 
-                } else {
+                if (!liff.isLoggedIn()) { liff.login(); } 
+                else {
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
                         unlockUI();
-                    }).catch(err => { 
-                        console.error(err); 
-                        unlockUI();
-                    });
+                    }).catch(err => { console.error(err); unlockUI(); });
                 }
-            }).catch(err => { 
-                console.error("LIFF failed:", err); 
-                unlockUI();
-            });
+            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
         });
 
         function unlockUI() {
@@ -124,18 +144,26 @@
             overlay.classList.toggle('hidden', !show);
         }
 
+        document.getElementById('btnCancelScan').addEventListener('click', () => {
+            document.getElementById('qrScannerGuidance').classList.add('hidden');
+        });
+
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             if (!isLineEnv) {
-                const mockData = prompt("【MVP 測試提示】請貼上電子發票 QRCode 的真實解碼字串（可貼上雙碼同掃或右側碼進行測試）：");
+                const mockData = prompt("【2.0 測試提示】請貼上電子發票 QRCode 的真實解碼字串：");
                 if (mockData) { fireQrCodeResult(mockData); }
                 return;
             }
             if (liff.scanCodeV2) {
+                const guidance = document.getElementById('qrScannerGuidance');
+                guidance.classList.remove('hidden');
+
                 liff.scanCodeV2().then(async (result) => {
+                    guidance.classList.add('hidden');
                     if (result.value) { fireQrCodeResult(result.value); }
-                }).catch((err) => {
+                }).catch((err) => { 
                     console.error("LINE Scan failed:", err);
-                    alert("掃描遭取消，或請確認 LINE Developer 後台的 Scan Code 權限是否有打勾開啟。");
+                    guidance.classList.add('hidden');
                 });
             } else {
                 alert("目前 LINE 版本不支援 scanCodeV2 接口。");
@@ -143,20 +171,16 @@
         });
 
         async function fireQrCodeResult(decodedText) {
-            // 🎯 1. 隱形防呆智慧核心：全域掃描合法的台灣發票左側碼骨架特徵 (2碼英文 + 8碼數字 + 5碼期別)
             const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
             const matchResult = decodedText.match(validQrRegex);
 
-            // 🚨 2. 剛性判定與物理熔斷：找不到正確特徵 ➔ 判定為「純單獨掃到右側明細碼」
             if (!matchResult) {
-                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
+                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請依據剛剛畫面的「綠色雷射框」提示，把鏡頭貼近發票，只瞄準「左邊」有英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
                 toggleLoading(false);
-                return; // 🚀 鋼鐵熔斷：立即結束，絕對禁止往下發射 Webhook 髒資料
+                return; // 🚀 剛性物理熔斷，拒絕往下傳輸髒資料
             }
 
-            // 🚀 3. 自動相容切片：不論是雙碼同掃還是夾帶雜訊，精準截取正確的左側發票結構
             const sanitizedQrText = decodedText.substring(matchResult.index).trim();
-
             toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
@@ -165,10 +189,7 @@
                     body: JSON.stringify({
                         body: { 
                             events: [{ 
-                                source: { 
-                                    userId: REAL_USER_ID,
-                                    displayName: REAL_DISPLAY_NAME
-                                }, 
+                                source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
                                 message: { text: "QR_DECODED:" + sanitizedQrText } 
                             }] 
                         }
@@ -221,10 +242,7 @@
                                 body: JSON.stringify({
                                     body: { 
                                         events: [{ 
-                                            source: { 
-                                                userId: REAL_USER_ID,
-                                                displayName: REAL_DISPLAY_NAME
-                                            }, 
+                                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
                                             message: { text: "IMAGE_BASE64:" + base64Image } 
                                         }] 
                                     }
@@ -264,6 +282,7 @@
             e.target.value = ""; 
         });
 
+        // 🎯 2.0 完全體對齊渲染引擎：動態解包 2.0 Payload
         function renderResults(items) {
             const panel = document.getElementById('resultPanel');
             const box = document.getElementById('resultBox');
@@ -275,33 +294,51 @@
                 countBadge.innerText = `${processedCount} 張發票`;
                 const data = rawItem.json ? rawItem.json : rawItem;
                 const card = document.createElement('div');
-                card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
                 
-                if (data.status === "success" || data.發票字軌與號碼) {
-                    let displayPeriod = "";
+                if (data.status === "success" && data.發票字軌與號碼) {
+                    // 📅 翻譯 2.0 期別 (11506 ➔ 115年05-06月)
+                    let displayPeriod = "期別格式錯誤";
                     if (data.發票期別 && data.發票期別.length === 5) {
                         const year = data.發票期別.substring(0, 3);
-                        const startM = parseInt(data.發票期別.substring(3, 5));
-                        displayPeriod = `${year}年${String(startM).padStart(2, '0')}-${String(startM + 1).padStart(2, '0')}月`;
-                    } else {
-                        displayPeriod = `期別: ${data.發票期別 || '未知'}`;
+                        const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                        const startMonth = endMonth - 1;
+                        displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
                     }
 
-                    card.classList.add('border-emerald-950/60', 'text-emerald-400');
+                    // 🎰 依據 2.0 狀態與金額進行工業級色彩對齊
+                    let statusColorClass = "border-slate-800 text-slate-400";
+                    let rightSideHtml = "";
+
+                    if (data.狀態 === "中獎") {
+                        statusColorClass = "border-amber-500/50 text-amber-400 bg-amber-950/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-amber-500/20 px-1.5 py-0.5 rounded font-black tracking-widest text-amber-400">🎉 ${data.狀態}</span><div class="text-sm font-black mt-1 text-amber-300">+${data.金額} 元</div></div>`;
+                    } else if (data.狀態 === "未中獎") {
+                        statusColorClass = "border-rose-950/40 text-rose-400/80 bg-rose-950/5";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-rose-950/60 px-1.5 py-0.5 rounded font-bold text-rose-400/70">😮 ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "尚未開獎") {
+                        statusColorClass = "border-blue-900/40 text-blue-400 bg-blue-950/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-blue-950/60 px-1.5 py-0.5 rounded font-bold text-blue-400">⏳ ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "已逾期") {
+                        statusColorClass = "border-slate-900 text-slate-500 bg-slate-900/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-slate-900 px-1.5 py-0.5 rounded font-bold text-slate-500">📴 ${data.狀態}</span></div>`;
+                    }
+
+                    card.className = `p-3 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
                     card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
-                            <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-500 font-mono text-[10px]">${displayPeriod} | (${data.發票輸入方式 || '圖片'})</span>
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-slate-200 text-base tracking-widest">📄 ${data.發票字軌與號碼}</span>
+                            <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span>
                         </div>
-                        <div class="text-sm font-black text-emerald-400">${data.金額 ? `🎉 中 ${data.金額}元` : '未中獎 😮'}</div>
+                        ${rightSideHtml}
                     `;
                 } else {
-                    card.classList.add('border-rose-950/60', 'text-rose-400');
+                    card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg border-rose-950/60 text-rose-400";
                     let errMsg = "影像模糊不清";
-                    if (data.reason === "503") errMsg = "AI 大腦塞車中";
+                    if (data.reason && data.reason.includes("503")) errMsg = "AI 大腦塞車中";
                     if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
                     card.innerHTML = `
-                        <div class="text-xs space-y-0.5">
+                        <div class="text-xs space-y-0.5 text-left">
                             <span class="font-black block text-slate-400">❌ 讀取失敗</span>
                             <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
                         </div>
