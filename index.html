@@ -86,7 +86,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 【WBS 2.0 正式上線】剛性移除 -test，全面對齊背景 24H 生產環境
+        // 🚀 【WBS 2.0 正式上線】生產環境背景監聽通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -106,10 +106,9 @@
             if (hasManualIntent) {
                 console.log("🔀 [第一線攔截] 偵測到手動輸入意圖，啟動中央路由，自動重導向至 manual.html");
                 window.location.href = "./manual.html" + window.location.search;
-                return; // 🎯 剛性熔斷：拒絕渲染任何 index 頁面
+                return;
             }
 
-            // 3秒超時熔斷安全開門
             setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
 
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
@@ -122,7 +121,6 @@
             liff.init({ liffId: LIFF_ID }).then(() => {
                 isLineEnv = true;
                 
-                // 🎯 [第二線攔截] 穿透 LINE 容器在登入跳轉時可能產生的快取污染
                 const context = liff.getContext();
                 if (context && context.url && context.url.includes('page=manual')) {
                     console.log("🔀 [第二線攔截] 穿透 LINE 內層 Context 成功，自動補償跳轉至 manual.html");
@@ -169,24 +167,34 @@
             }
         });
 
+        // 🎯【WBS 2.0 核心整治】：前端重組洗淨引擎，剛性補齊減號
         async function fireQrCodeResult(decodedText) {
-            const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
+            // 🧠 穿透規則：同時相容有減號 (AB-12345678) 與無減號 (AB12345678) 的財政部標準字串
+            const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
             const matchResult = decodedText.match(validQrRegex);
+            
             if (!matchResult) {
                 alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
                 return;
             }
-            const sanitizedQrText = decodedText.substring(matchResult.index).trim();
-            toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
+            
+            // 🧼 擷取核心：精準重組為帶有標準減號的 15 碼黃金主鍵格式
+            const trackingCode = matchResult[1].toUpperCase(); // 例如: AH
+            const serialNumber = matchResult[3];               // 例如: 07801615
+            const invoicePeriod = matchResult[4];              // 例如: 11506
+            
+            const standardizedText = `QR_DECODED:${trackingCode}-${serialNumber}${invoicePeriod}`;
+            
+            toggleLoading(true, "電子發票規格化成功！正在全速衝刺...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    // 🎯【源頭整治】：精準扒掉最外層 body 嵌套，將 events 直接拋出
                     body: JSON.stringify({
                         events: [{ 
                             source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
-                            message: { text: "QR_DECODED:" + sanitizedQrText } 
+                            // 噴出經過源頭清洗、自帶減號、長度剛性對齊的純淨 Payload
+                            message: { text: standardizedText } 
                         }] 
                     })
                 });
@@ -237,16 +245,13 @@
                 let data = rawItem.json ? rawItem.json : rawItem; 
                 const card = document.createElement('div');
                 
-                // 🎯 核心修正 (1)：只有在對獎成功且「不是異常熔斷」的狀況下，發票張數才累加
                 if (data.status === "success" && data.狀態 !== "not_invoice") {
                     processedCount++;
                     document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
                 } else if (processedCount === 0) {
-                    // 🎯 修正：若累計張數為 0，則維持顯示 0 張
                     document.getElementById('resultCount').innerText = `0 張發票`;
                 }
 
-                // 📅 雙月標籤翻譯
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
@@ -257,7 +262,6 @@
                 let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
                 let rightSideHtml = "";
 
-                // 🎯 核心修正 (2)：精準對齊大腦輸出，拍到貓或異常時顯示「不是台灣發票」
                 if (data.status === "error" || data.狀態 === "not_invoice") {
                     statusColorClass = "border-rose-950/60 text-rose-400 bg-rose-950/10";
                     rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-rose-950 px-2.5 py-0.5 rounded-full font-black text-rose-400">❌ 失敗</span></div>`;
@@ -271,7 +275,6 @@
                         ${rightSideHtml}
                     `;
                 } else {
-                    // 以下為正常中獎狀態管理
                     if (data.狀態 === "中獎") {
                         statusColorClass = "border-amber-500/40 text-amber-400 bg-gradient-to-r from-amber-950/20 to-transparent";
                         rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-full font-black text-amber-300">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 text-amber-400 tracking-wide">+${data.金額} 元</div></div>`;
