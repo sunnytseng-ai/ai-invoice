@@ -104,6 +104,14 @@
         let invoiceList = []; 
 
         document.addEventListener("DOMContentLoaded", () => {
+            // 🚀 2.0 剛性超時防禦晶片：3秒內沒開門，前端暴力破門解除轉圈圈！
+            setTimeout(() => {
+                if (document.getElementById('splashScreen').style.display !== 'none') {
+                    console.warn("⚠️ 偵測到環境快取或非同步卡頓，啟動 2.0 剛性超時熔斷！");
+                    unlockUI();
+                }
+            }, 3000);
+
             initDynamicPeriods();
 
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
@@ -128,7 +136,7 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 📅 2.0 動態民國雙雙月期別精準注入大腦（已完全修正括號閉合）
+        // 📅 2.0 動態民國雙雙月期別核心大腦（已完全清除尾部髒代碼）
         function initDynamicPeriods() {
             const periodSelect = document.getElementById('inputPeriod');
             const d = new Date();
