@@ -147,14 +147,14 @@
             const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
             const matchResult = decodedText.match(validQrRegex);
 
-            // 🚨 2. 剛性判定：全身上下搜遍了，完全找不到正確的左側碼特徵 ➔ 判定為「純單獨掃到右側明細碼」
+            // 🚨 2. 剛性判定與物理熔斷：找不到正確特徵 ➔ 判定為「純單獨掃到右側明細碼」
             if (!matchResult) {
-                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫我瞄準發票「左邊」那顆正方形重新掃描喔！📸");
+                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
                 toggleLoading(false);
-                return;
+                return; // 🚀 鋼鐵熔斷：立即結束，絕對禁止往下發射 Webhook 髒資料
             }
 
-            // 🚀 3. 自動相容切片：不論是雙碼同掃、大字串雜訊，精準截取正確的左側發票結構開頭，溫柔秒通車！
+            // 🚀 3. 自動相容切片：不論是雙碼同掃還是夾帶雜訊，精準截取正確的左側發票結構
             const sanitizedQrText = decodedText.substring(matchResult.index).trim();
 
             toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
