@@ -86,7 +86,6 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 【WBS 2.0 正式上線】生產環境背景監聽通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -95,16 +94,12 @@
         let isLineEnv = false;
 
         document.addEventListener("DOMContentLoaded", () => {
-            // =========================================================================
-            // 🔀 【WBS 1.0 核心防禦線】中央路由調度總機（0毫秒剛性攔截跳轉）
-            // =========================================================================
             const urlParams = new URLSearchParams(window.location.search);
             const hasManualIntent = urlParams.get('page') === 'manual' || 
                                     window.location.hash.includes('page=manual') || 
                                     window.location.search.includes('page=manual');
 
             if (hasManualIntent) {
-                console.log("🔀 [第一線攔截] 偵測到手動輸入意圖，啟動中央路由，自動重導向至 manual.html");
                 window.location.href = "./manual.html" + window.location.search;
                 return;
             }
@@ -120,10 +115,8 @@
             
             liff.init({ liffId: LIFF_ID }).then(() => {
                 isLineEnv = true;
-                
                 const context = liff.getContext();
                 if (context && context.url && context.url.includes('page=manual')) {
-                    console.log("🔀 [第二線攔截] 穿透 LINE 內層 Context 成功，自動補償跳轉至 manual.html");
                     window.location.href = "./manual.html" + window.location.search;
                     return;
                 }
@@ -153,7 +146,6 @@
             overlay.classList.toggle('hidden', !show);
         }
 
-        // ⚡ 電子發票 QRCode 掃描流
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             if (!isLineEnv) {
                 const mockData = prompt("【2.0 測試提示】請貼上電子發票 QRCode 的真實解碼字串：");
@@ -167,9 +159,8 @@
             }
         });
 
-        // 🎯【WBS 2.0 核心整治】：前端重組洗淨引擎，剛性補齊減號
+        // 🎯【前端完全控制期別晶片】：11512 剛性收束為 11511，年份與民國年 100% 鎖定對齊
         async function fireQrCodeResult(decodedText) {
-            // 🧠 穿透規則：同時相容有減號 (AB-12345678) 與無減號 (AB12345678) 的財政部標準字串
             const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
             const matchResult = decodedText.match(validQrRegex);
             
@@ -178,14 +169,23 @@
                 return;
             }
             
-            // 🧼 擷取核心：精準重組為帶有標準減號的 15 碼黃金主鍵格式
-            const trackingCode = matchResult[1].toUpperCase(); // 例如: AH
-            const serialNumber = matchResult[3];               // 例如: 07801615
-            const invoicePeriod = matchResult[4];              // 例如: 11506
+            const trackingCode = matchResult[1].toUpperCase(); 
+            const serialNumber = matchResult[3];               
+            const rawPeriod = matchResult[4];              
             
-            const standardizedText = `QR_DECODED:${trackingCode}-${serialNumber}${invoicePeriod}`;
+            let correctedPeriod = rawPeriod;
+            if (rawPeriod.length === 5) {
+                const year = rawPeriod.substring(0, 3);
+                const month = parseInt(rawPeriod.substring(3, 5), 10);
+                if (month % 2 === 0) {
+                    const oddMonth = String(month - 1).padStart(2, '0');
+                    correctedPeriod = year + oddMonth; // 🎯 11512 剛性收束為 11511，11506 ➔ 11505
+                }
+            }
             
-            toggleLoading(true, "電子發票規格化成功！正在全速衝刺...");
+            const standardizedText = `QR_DECODED:${trackingCode}-${serialNumber}${correctedPeriod}`;
+            
+            toggleLoading(true, "電子發票規格化成功！正在全速對獎中...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST', 
@@ -193,7 +193,6 @@
                     body: JSON.stringify({
                         events: [{ 
                             source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
-                            // 噴出經過源頭清洗、自帶減號、長度剛性對齊的純淨 Payload
                             message: { text: standardizedText } 
                         }] 
                     })
@@ -206,7 +205,6 @@
             } catch (err) { console.error(err); } finally { toggleLoading(false); }
         }
 
-        // 📸 傳統發票圖片批量解包流
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files); if (files.length === 0) return;
             processedCount = 0; document.getElementById('resultBox').innerHTML = "";
@@ -215,7 +213,7 @@
                 await new Promise((res) => {
                     const r = new FileReader(); r.onload = (ev) => {
                         const img = new Image(); img.onload = async () => {
-                            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                            const canvas = document.createElement('canvas'); const ctx = canvas.createElement('canvas').getContext('2d');
                             let w = img.width, h = img.height; if(w > h) { if(w>1024){ h*=1024/w; w=1024; } } else { if(h>1024){ w*=1024/h; h=1024; } }
                             canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
                             const b64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
@@ -235,7 +233,6 @@
             toggleLoading(false); e.target.value = "";
         });
 
-        // 🎨 卡片渲染引擎 (WBS 1.0 異常熔斷補強版)
         function renderResults(items) {
             const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
@@ -255,8 +252,9 @@
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
-                    const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                    displayPeriod = `${year}年${String(endMonth - 1).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                    const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    // 📅 雙月區間高質感翻譯：11505 ➔ 115年 05-06 月
+                    displayPeriod = `${year}年 ${String(startMonth).padStart(2, '0')}-${String(startMonth + 1).padStart(2, '0')} 月`;
                 }
 
                 let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
