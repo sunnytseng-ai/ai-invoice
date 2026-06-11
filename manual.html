@@ -19,11 +19,9 @@
         #appLayout { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none no-scrollbar">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
 
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
         <div class="loading-spinner"></div>
@@ -31,49 +29,47 @@
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
-        
         <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
             <div class="text-left">
                 <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">📄 補登歷史發票</h1>
                 <p class="text-[10px] text-slate-500 font-bold tracking-wide mt-0.5">MANUAL INPUT PORTAL</p>
             </div>
-            <button onclick="window.location.href='./index.html'" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded-xl shadow transition duration-200">
+            <button onclick="window.location.href='./index.html'" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded-xl shadow">
                 返回首頁 🏠
             </button>
         </header>
 
         <main class="w-full my-auto py-6 space-y-5 animate-fadeIn">
-            
             <div class="space-y-1.5 text-left">
                 <label class="text-xs font-black text-slate-400 tracking-widest block">📅 請選擇發票期別 (雙月)</label>
                 <div class="relative">
-                    <select id="selPeriod" class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 p-4 rounded-xl text-sm font-bold tracking-wide text-slate-200 outline-none transition duration-200 appearance-none cursor-pointer">
+                    <select id="selPeriod" class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 p-4 rounded-xl text-sm font-bold tracking-wide text-slate-200 outline-none appearance-none cursor-pointer">
+                        <option value="11512">115年 11-12 月份</option>
+                        <option value="11510">115年 09-10 月份</option>
+                        <option value="11508">115年 07-08 月份</option>
                         <option value="11506">115年 05-06 月份</option>
                         <option value="11504">115年 03-04 月份</option>
                         <option value="11502">115年 01-02 月份</option>
-                        <option value="11412">114年 11-12 月份</option>
-                        <option value="11410">114年 09-10 月份</option>
-                        <option value="11408">114年 07-08 月份</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 font-black">▼</div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">▼</div>
                 </div>
             </div>
 
             <div class="space-y-1.5 text-left">
                 <label class="text-xs font-black text-slate-400 tracking-widest block">📄 發票字軌 (英文 2 碼)</label>
-                <input type="text" id="txtTracking" placeholder="例如：AH" maxlength="2" class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 p-4 rounded-xl text-base font-black tracking-widest text-emerald-400 uppercase outline-none transition duration-200 placeholder-slate-700">
+                <input type="text" id="txtTracking" placeholder="例如：AH" maxlength="2" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-base font-black tracking-widest text-emerald-400 uppercase outline-none">
             </div>
 
             <div class="space-y-1.5 text-left">
                 <label class="text-xs font-black text-slate-400 tracking-widest block">🔢 發票號碼 (數字 8 碼)</label>
-                <input type="tel" id="txtSerial" placeholder="例如：07801615" maxlength="8" class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500/50 p-4 rounded-xl text-xl font-black tracking-widest text-slate-100 font-mono outline-none transition duration-200 placeholder-slate-700">
+                <input type="tel" id="txtSerial" placeholder="例如：07801615" maxlength="8" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xl font-black tracking-widest text-slate-100 font-mono outline-none">
             </div>
 
-            <button id="btnSubmit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-base py-4 rounded-xl shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition duration-150 tracking-widest mt-4">
+            <button id="btnSubmit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-base py-4 rounded-xl shadow-lg transition tracking-widest mt-4">
                 🚀 立即補登並啟動精準對獎
             </button>
 
-            <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden shadow-2xl">
+            <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 手動補登對獎報告</span>
                     <span id="resultCount" class="text-xs font-mono font-bold text-slate-500">0 張發票</span>
@@ -94,7 +90,6 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 【WBS 2.0 正式上線】生產環境背景監聽通道
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -103,7 +98,6 @@
         let isLineEnv = false;
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 3秒超時熔斷安全開門
             setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
 
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
@@ -125,7 +119,7 @@
                         unlockUI();
                     }).catch(err => { console.error(err); unlockUI(); });
                 }
-            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+            }).catch(err => { console.error("LIFF failed:", err); });
         });
 
         function unlockUI() {
@@ -139,7 +133,7 @@
             overlay.classList.toggle('hidden', !show);
         }
 
-        // 🎯【WBS 2.0 核心整治】：前端完全控制 (11505) 期別格式原則，扒掉外層 body 嵌套
+        // 🎯 前端期別收束演算法：11512 ➔ 11511 民國年份完美對齊鎖死
         document.getElementById('btnSubmit').addEventListener('click', async () => {
             const tracking = document.getElementById('txtTracking').value.trim().toUpperCase();
             const serial = document.getElementById('txtSerial').value.trim();
@@ -150,28 +144,25 @@
                 return;
             }
 
-            // 🧠 前端期別收束晶片：若是雙數月（例如 11506），剛性在前端收束為單數月格式（11505）
             let finalPeriod = rawPeriod;
             if (rawPeriod.length === 5) {
                 const year = rawPeriod.substring(0, 3);
                 const month = parseInt(rawPeriod.substring(3, 5), 10);
                 if (month % 2 === 0) {
-                    finalPeriod = year + String(month - 1).padStart(2, '0'); 
+                    finalPeriod = year + String(month - 1).padStart(2, '0'); // 年份完全不扣！
                 }
             }
 
-            // 🧼 規格化重組：封裝為純淨單層事件結構，並直接帶有 '-' 連字號與 11505 單月格式
             const standardizedText = `MANUAL_INPUT:[{"發票字軌與號碼":"${tracking}-${serial}","發票號碼":"${serial}","發票期別":"${finalPeriod}","發票輸入方式":"手動輸入"}]`;
             
             document.getElementById('resultBox').innerHTML = "";
             processedCount = 0;
-            toggleLoading(true, "正在送往高鐵跑道並啟動開獎計算...");
+            toggleLoading(true, "正在送往雲端總機進行開獎計算...");
             
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    // 🎯【源頭整治】：精準扒掉重複外殼，events 作為最外層 Body 噴射
                     body: JSON.stringify({
                         events: [{
                             source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
@@ -184,18 +175,10 @@
                     let bulkResults = await res.json(); 
                     if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
                     renderResults(bulkResults);
-                } else {
-                    alert("⚠️ 通路拋送失敗，請確認 ngrok 或後端畫布是否啟動！");
                 }
-            } catch(e) { 
-                console.error(e); 
-                alert("❌ 網路傳輸異常，阻斷慢車鏈存取。");
-            } finally { 
-                toggleLoading(false); 
-            }
+            } catch(e) { console.error(e); } finally { toggleLoading(false); }
         });
 
-        // 卡片渲染引擎 (Slate 鈦黑高質感渲染)
         function renderResults(items) {
             const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
@@ -215,8 +198,8 @@
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
-                    const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                    displayPeriod = `${year}年${String(endMonth - 1).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                    const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    displayPeriod = `${year}年 ${String(startMonth).padStart(2, '0')}-${String(startMonth + 1).padStart(2, '0')} 月`;
                 }
 
                 let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
@@ -230,7 +213,6 @@
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5 text-left">
                             <span class="font-black block text-rose-400 text-base tracking-wide">🐱 不是台灣發票</span>
-                            <span class="text-slate-500 font-mono text-[10px] block mt-1">系統已自動隔離落盤通道</span>
                         </div>
                         ${rightSideHtml}
                     `;
