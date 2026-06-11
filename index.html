@@ -264,11 +264,20 @@
                 card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg";
                 
                 if (data.status === "success" || data.發票字軌與號碼) {
+                    let displayPeriod = "";
+                    if (data.發票期別 && data.發票期別.length === 5) {
+                        const year = data.發票期別.substring(0, 3);
+                        const startM = parseInt(data.發票期別.substring(3, 5));
+                        displayPeriod = `${year}年${String(startM).padStart(2, '0')}-${String(startM + 1).padStart(2, '0')}月`;
+                    } else {
+                        displayPeriod = `期別: ${data.發票期別 || '未知'}`;
+                    }
+
                     card.classList.add('border-emerald-950/60', 'text-emerald-400');
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5">
                             <span class="font-black block text-slate-200">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-500 font-mono text-[10px]">第 ${data.發票期別 || ''} 期 | 成功 (${data.發票輸入方式 || '圖片'})</span>
+                            <span class="text-slate-500 font-mono text-[10px]">${displayPeriod} | (${data.發票輸入方式 || '圖片'})</span>
                         </div>
                         <div class="text-sm font-black text-emerald-400">${data.金額 ? `🎉 中 ${data.金額}元` : '未中獎 😮'}</div>
                     `;
