@@ -104,20 +104,25 @@
         let invoiceList = []; 
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 🚀 2.0 剛性超時防禦晶片：3秒內沒開門，前端暴力破門解除轉圈圈！
+            initDynamicPeriods();
+
+            // 🎯 2.0 強固型非同步開門熔斷：不管是快取污染、髒參數還是 SDK 掛起，3秒內必定強制開門！
             setTimeout(() => {
                 if (document.getElementById('splashScreen').style.display !== 'none') {
-                    console.warn("⚠️ 偵測到環境快取或非同步卡頓，啟動 2.0 剛性超時熔斷！");
+                    console.warn("⚠️ 啟動 2.0 剛性超時防禦解鎖");
                     unlockUI();
                 }
             }, 3000);
 
-            initDynamicPeriods();
-
-            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+            // 🎯 核心修正：剛性排除 NB 瀏覽器的引導髒參數干擾
+            const isMobileLine = navigator.userAgent.includes("Line");
+            if (!isMobileLine) {
+                console.log("🖥️ 偵測為普通電腦瀏覽器環境，跳過 LIFF 認證，直接放行通車。");
                 unlockUI();
                 return;
             }
+
+            // 只有真正的手機 LINE 環境才會走到下方的黑盒子 initialization
             liff.init({ liffId: LIFF_ID }).then(() => {
                 if (!liff.isLoggedIn()) { liff.login(); } 
                 else {
@@ -136,7 +141,6 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 📅 2.0 動態民國雙雙月期別核心大腦（已完全清除尾部髒代碼）
         function initDynamicPeriods() {
             const periodSelect = document.getElementById('inputPeriod');
             const d = new Date();
