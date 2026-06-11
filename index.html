@@ -68,7 +68,7 @@
             <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 當前對獎報告明細</span>
-                    <span id="resultCount" class="text-xs font-mono font-bold text-slate-500">0張發票</span>
+                    <span id="resultCount" class="text-xs font-mono font-bold text-slate-500">0 張發票</span>
                 </div>
                 <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
             </div>
@@ -86,7 +86,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 目前仍保持在您的開發區路徑（待 WBS 2.0 再剛性切換為正式區）
+        // 🚀 開發通道快取（待 WBS 2.0 再剛性切換為正式區路徑）
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -219,32 +219,72 @@
             toggleLoading(false); e.target.value = "";
         });
 
-        // 卡片渲染渲染引擎
+        // 🎨 卡片渲染引擎 (WBS 1.0 異常熔斷補強版)
         function renderResults(items) {
-            const panel = document.getElementById('resultPanel'); const box = document.getElementById('resultBox');
+            const panel = document.getElementById('resultPanel'); 
+            const box = document.getElementById('resultBox');
             panel.classList.remove('hidden');
+            
             items.forEach(rawItem => {
-                let data = rawItem.json ? rawItem.json : rawItem; processedCount++;
-                document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
+                let data = rawItem.json ? rawItem.json : rawItem; 
                 const card = document.createElement('div');
+                
+                // 🎯 核心修正 (1)：只有在對獎成功且「不是異常熔斷」的狀況下，發票張數才累加
+                if (data.status === "success" && data.狀態 !== "not_invoice") {
+                    processedCount++;
+                    document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
+                } else if (processedCount === 0) {
+                    // 🎯 修正：若累計張數為 0，則維持顯示 0 張
+                    document.getElementById('resultCount').innerText = `0 張發票`;
+                }
+
+                // 📅 雙月標籤翻譯
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
-                    const year = data.發票期別.substring(0, 3); const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    const year = data.發票期別.substring(0, 3); 
+                    const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
                     displayPeriod = `${year}年${String(endMonth - 1).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
                 }
-                let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; let rightSideHtml = "";
-                if (data.狀態 === "中獎") {
-                    statusColorClass = "border-amber-500/40 text-amber-400 bg-gradient-to-r from-amber-950/20 to-transparent";
-                    rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-full font-black text-amber-300">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 text-amber-400">+${data.金額} 元</div></div>`;
-                } else if (data.狀態 === "未中獎") {
-                    statusColorClass = "border-slate-900 text-slate-400/70 bg-slate-900/20";
-                    rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded-full font-bold text-slate-600">😮 ${data.狀態}</span></div>`;
-                } else if (data.狀態 === "尚未開獎") {
-                    statusColorClass = "border-sky-500/30 text-sky-400 bg-gradient-to-r from-sky-950/10 to-transparent";
-                    rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full font-black text-sky-300">⏳ ${data.狀態}</span></div>`;
+
+                let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
+                let rightSideHtml = "";
+
+                // 🎯 核心修正 (2)：精準對齊大腦輸出，拍到貓或異常時顯示「不是台灣發票」
+                if (data.status === "error" || data.狀態 === "not_invoice") {
+                    statusColorClass = "border-rose-950/60 text-rose-400 bg-rose-950/10";
+                    rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-rose-950 px-2.5 py-0.5 rounded-full font-black text-rose-400">❌ 失敗</span></div>`;
+                    
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-rose-400 text-base tracking-wide">🐱 不是台灣發票</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-1">系統已自動隔離落盤通道</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
+                } else {
+                    // 以下為正常中獎狀態管理
+                    if (data.狀態 === "中獎") {
+                        statusColorClass = "border-amber-500/40 text-amber-400 bg-gradient-to-r from-amber-950/20 to-transparent";
+                        rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-full font-black text-amber-300">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 text-amber-400 tracking-wide">+${data.金額} 元</div></div>`;
+                    } else if (data.狀態 === "未中獎") {
+                        statusColorClass = "border-slate-900 text-slate-400/70 bg-slate-900/20";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded-full font-bold text-slate-600">😮 ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "尚未開獎") {
+                        statusColorClass = "border-sky-500/30 text-sky-400 bg-gradient-to-r from-sky-950/10 to-transparent";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full font-black text-sky-300">⏳ ${data.狀態}</span></div>`;
+                    }
+
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-slate-100 text-base tracking-widest font-mono">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
+                            <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
                 }
-                card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
-                card.innerHTML = `<div class="text-xs space-y-0.5 text-left"><span class="font-black block text-slate-100 text-base tracking-widest font-mono">📄 ${data.發票字軌與號碼 || '未知號碼'}</span><span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span><span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span></div>${rightSideHtml}`;
                 box.insertBefore(card, box.firstChild);
             });
         }
