@@ -86,7 +86,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 開發通道快取（待 WBS 2.0 再剛性切換為正式區路徑）
+        // 🚀 【WBS 2.0 正式上線】剛性移除 -test，全面對齊背景 24H 生產環境
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -180,11 +180,19 @@
             toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({ body: { events: [{ source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, message: { text: "QR_DECODED:" + sanitizedQrText } }] } })
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    // 🎯【源頭整治】：精準扒掉最外層 body 嵌套，將 events 直接拋出
+                    body: JSON.stringify({
+                        events: [{ 
+                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
+                            message: { text: "QR_DECODED:" + sanitizedQrText } 
+                        }] 
+                    })
                 });
                 if (res.ok) {
-                    let bulkResults = await res.json(); if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                    let bulkResults = await res.json(); 
+                    if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
                     renderResults(bulkResults);
                 }
             } catch (err) { console.error(err); } finally { toggleLoading(false); }
