@@ -19,19 +19,6 @@
         #appLayout { display: none !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        
-        /* 方案 B 專用：內嵌鏡頭觀景窗優化 */
-        #reader {
-            width: 100% !important;
-            background: #020617 !important;
-            border: none !important;
-            border-radius: 1.5rem !important;
-            overflow: hidden !important;
-        }
-        #reader video {
-            border-radius: 1.5rem !important;
-            object-fit: cover !important;
-        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen select-none p-6 flex flex-col justify-between">
@@ -40,269 +27,305 @@
         <div class="loading-spinner"></div>
     </div>
 
-    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-sm mx-auto overflow-hidden">
-        
-        <div class="space-y-4">
-            <header class="text-center pt-4">
-                <h1 class="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">AI 拍拍中獎王</h1>
-                <div id="envBadge" class="text-[10px] text-slate-500 mt-1 tracking-wider">邊緣算力環境初始化...</div>
-            </header>
+    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-sm mx-auto">
+        <header class="text-center pt-4 space-y-1">
+            <h1 class="text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">影像拍拍對獎</h1>
+            <div id="envBadge" class="text-[10px] text-slate-500 mt-1 tracking-wider">環境初始化中...</div>
+        </header>
 
-            <div class="bg-slate-900/60 border border-slate-950 rounded-3xl p-5 shadow-2xl space-y-4">
-                
-                <div id="scannerContainer" class="hidden space-y-3 animate-fadeIn">
-                    <div id="reader"></div>
-                    <button id="btnStopScanner" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs tracking-wider transition">
-                        ⏹️ 關閉相機串流
-                    </button>
+        <main class="w-full my-auto space-y-5">
+            <div class="space-y-4">
+                <label class="relative flex items-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-2xl">
+                    <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <span class="text-4xl group-hover:scale-110 transition duration-200">📸</span>
+                        <div class="text-left">
+                            <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">支援多張相簿選取 ➔ 呼叫 AI 智慧對獎</span>
+                        </div>
+                    </div>
+                </label>
+
+                <button id="btnStartQrScan" class="w-full flex items-center bg-slate-900 border-2 border-dashed border-slate-800 hover:border-emerald-500/50 p-5 rounded-2xl transition duration-200 text-left group shadow-2xl">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-4xl group-hover:scale-110 transition duration-200">⚡</span>
+                        <div>
+                            <span class="block font-bold text-base text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝電子 QRCode 發票</span>
+                            <span class="block text-[11px] text-slate-500 mt-0.5">調用 LINE 原生相機 ➔ 嗶一聲極速對獎</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div id="resultPanel" class="bg-slate-900/60 border border-slate-900 rounded-2xl p-4.5 space-y-3 shadow-2xl hidden">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 即時對獎報告明細</span>
+                    <span id="resultCount" class="text-xs font-mono text-slate-500">0張發票</span>
                 </div>
-
-                <button id="btnStartStreamScan" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 px-4 rounded-2xl text-base tracking-widest transition duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/20">
-                    <span>📸 啟動連續掃碼對獎</span>
-                </button>
-
-                <button id="btnStartNativeScan" class="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 font-bold py-3 px-4 rounded-2xl text-xs tracking-widest transition duration-200 flex items-center justify-center space-x-2">
-                    <span>🔄 備用方案 A (LINE 原生掃碼)</span>
-                </button>
+                <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1 text-sm font-medium"></div>
             </div>
-        </div>
+        </main>
 
-        <div class="flex-1 overflow-y-auto my-4 pr-1 space-y-3" style="max-height: 22rem;">
-            <div id="resultHeader" class="text-xs font-black tracking-widest text-emerald-400 px-1 hidden flex items-center justify-between">
-                <span>⚡ 即時雲端對獎報告明細</span>
-                <span class="text-[10px] font-normal text-slate-500 font-mono">Real-time Stream</span>
-            </div>
-            <div id="historyPanel" class="space-y-2.5"></div>
-        </div>
-
-        <footer class="text-center border-t border-slate-900 pt-3 select-none">
-            <a href="./manual.html" class="inline-block text-emerald-500 hover:underline text-sm md:text-base font-extrabold tracking-wider py-1">
-                ⌨️ 切換至手動補登發票模式
-            </a>
+        <footer class="text-center py-4 text-xs text-slate-600 tracking-widest">
+            SECURE ENCRYPTION PIPELINE
         </footer>
     </div>
 
     <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-bold text-emerald-400 tracking-widest animate-pulse">正在透過通道對獎中...</p>
+        <p id="loadingText" class="text-sm font-medium text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
         let REAL_DISPLAY_NAME = "PC網頁端使用者";
-        let html5QrcodeScanner = null;
-        let isProcessing = false; // 🔒 聯鎖防禦防重發開關
+        let processedCount = 0;
+        let isLineEnv = false;
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 🚀 2.0 剛性超時防禦解鎖
+            // 🚀 2.0 剛性超時開門防禦
             setTimeout(() => {
                 if (document.getElementById('splashScreen').style.display !== 'none') {
-                    console.warn("觸發超時安全熔斷");
+                    console.warn("觸發超時解鎖");
                     unlockUI();
                 }
             }, 3000);
 
-            const isMobileLine = navigator.userAgent.includes("Line");
-            if (!isMobileLine) {
-                document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯模式 (ID: ${REAL_USER_ID})`;
+            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                isLineEnv = false;
+                document.getElementById('envBadge').innerText = `🖥️ PC 跨端測試模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
-
+            
             liff.init({ liffId: LIFF_ID }).then(() => {
-                if (liff.isLoggedIn()) {
+                isLineEnv = true;
+                if (!liff.isLoggedIn()) { 
+                    liff.login(); 
+                } else {
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = `📱 LINE 邊緣校準模式 (${REAL_DISPLAY_NAME})`;
-                        unlockUI(); 
+                        document.getElementById('envBadge').innerText = `📱 LINE 行動同步模式 (${REAL_DISPLAY_NAME})`;
+                        unlockUI();
                     }).catch(err => { console.error(err); unlockUI(); });
-                } else {
-                    liff.login();
                 }
-            }).catch(err => { console.error("LIFF 啟動失敗:", err); unlockUI(); });
+            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
         });
 
         function unlockUI() {
+            document.getElementById('imageCapture').disabled = false;
             document.getElementById('splashScreen').style.display = 'none';
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // =========================================================================
-        // 🎯 方案 B：網頁連續影格串流解碼核心 (300ms 節流、隱形防呆)
-        // =========================================================================
-        document.getElementById('btnStartStreamScan').addEventListener('click', () => {
-            const container = document.getElementById('scannerContainer');
-            container.classList.remove('hidden');
-            document.getElementById('btnStartStreamScan').classList.add('hidden');
-
-            if (!html5QrcodeScanner) {
-                // 🛑 核心優化：fps 設為 4 (相當於每 250ms 抓一幀)，手感流暢且低階手機絕不卡頓、不發燙
-                html5QrcodeScanner = new Html5Qrcode("reader");
-            }
-
-            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                // 🔒 聯鎖檢查：如果上一張發票還在傳輸對獎，直接剛性攔截本次解碼，不彈錯誤
-                if (isProcessing) return;
-
-                // 🛡️ 隱形防呆正則過濾：只有符合左側二維碼規範 (開頭 2 碼英文 + 8 碼數字 + 共 77 碼) 才放行
-                const invoicePattern = /^[A-Z]{2}[0-9]{8}/;
-                if (!invoicePattern.test(decodedText) || decodedText.length < 77) {
-                    console.log("🔍 掃到右側明細碼或無效字串，記憶體自動蒸發，繼續保持掃描狀態。");
-                    return; 
-                }
-
-                // 🎯 成功捕獲左側發票！
-                isProcessing = true; 
-                navigator.vibrate ? navigator.vibrate(100) : null; // 清脆震動反饋
-
-                // 暫停解碼，保持相機畫面，優化多端視覺體驗
-                html5QrcodeScanner.pause();
-                sendInvoiceToN8N("QR_DECODED:" + decodedText);
-            };
-
-            const config = { 
-                fps: 4, 
-                qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    return { width: Math.min(viewfinderWidth * 0.8, 260), height: Math.min(viewfinderWidth * 0.8, 260) };
-                },
-                aspectRatio: 1.0
-            };
-
-            html5QrcodeScanner.start(
-                { facingMode: "environment" }, 
-                config, 
-                qrCodeSuccessCallback,
-                (errorMessage) => { /* 忽略連續掃描過程中的失焦雜訊，維持暢通 */ }
-            ).catch(err => {
-                alert("相機喚起失敗，請檢查權限是否開啟！");
-                stopScannerMechanism();
-            });
-        });
-
-        document.getElementById('btnStopScanner').addEventListener('click', stopScannerMechanism);
-
-        function stopScannerMechanism() {
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                html5QrcodeScanner.stop().then(() => {
-                    document.getElementById('scannerContainer').classList.add('hidden');
-                    document.getElementById('btnStartStreamScan').classList.remove('hidden');
-                    isProcessing = false;
-                });
-            } else {
-                document.getElementById('scannerContainer').classList.add('hidden');
-                document.getElementById('btnStartStreamScan').classList.remove('hidden');
-                isProcessing = false;
-            }
+        function toggleLoading(show, text = "正在精準傳輸數據...") {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').innerText = text;
+            overlay.classList.toggle('hidden', !show);
         }
 
-        // =========================================================================
-        // 📋 備用方案 A：LINE 原生官方黑盒子掃碼代碼記錄 (拔除雷射框)
-        // =========================================================================
-        document.getElementById('btnStartNativeScan').addEventListener('click', () => {
-            if (!liff.isInClient()) {
-                alert("🖥️ 目前處於 PC 瀏覽器環境，LINE 原生掃碼不支援喔！請使用方案 B「連續掃碼對獎」。");
+        document.getElementById('btnStartQrScan').addEventListener('click', async () => {
+            if (!isLineEnv) {
+                const mockData = prompt("【2.0 測試提示】請貼上電子發票 QRCode 的真實解碼字串（可測試雙碼同掃或右側碼）：");
+                if (mockData) { fireQrCodeResult(mockData); }
                 return;
             }
-
-            liff.scanCodeV2().then(result => {
-                if (result && result.value) {
-                    sendInvoiceToN8N("QR_DECODED:" + result.value);
-                }
-            }).catch(err => {
-                console.error("方案 A 取消或失敗", err);
-            });
+            if (liff.scanCodeV2) {
+                liff.scanCodeV2().then(async (result) => {
+                    if (result.value) { fireQrCodeResult(result.value); }
+                }).catch((err) => {
+                    console.error("LINE Scan failed:", err);
+                });
+            } else {
+                alert("目前 LINE 版本不支援 scanCodeV2 接口。");
+            }
         });
 
-        // =========================================================================
-        // 🚀 數據傳輸與動態對獎報告明細渲染 (與後端 N8N 完全無縫相容)
-        // =========================================================================
-        async function sendInvoiceToN8N(rawPayload) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.remove('hidden');
+        async function fireQrCodeResult(decodedText) {
+            // 🎯 1. 隱形防呆智慧核心：全域掃描合法的台灣發票左側碼骨架特徵 (2碼英文 + 8碼數字 + 5碼期別)
+            const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
+            const matchResult = decodedText.match(validQrRegex);
 
+            // 🚨 2. 剛性判定與物理熔斷：找不到正確特徵 ➔ 判定為「純單獨掃到右側明細碼」
+            if (!matchResult) {
+                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
+                toggleLoading(false);
+                return; // 🚀 鋼鐵熔斷：立即結束，絕對禁止往下發射 Webhook 髒資料
+            }
+
+            // 🚀 3. 自動相容切片：不論是雙碼同掃還是夾帶雜訊，精準截取正確的左側發票結構開頭
+            const sanitizedQrText = decodedText.substring(matchResult.index).trim();
+
+            toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
-                        body: {
-                            events: [{
-                                source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
-                                message: { text: rawPayload }
-                            }]
+                        body: { 
+                            events: [{ 
+                                source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
+                                message: { text: "QR_DECODED:" + sanitizedQrText } 
+                            }] 
                         }
                     })
                 });
-
-                if (!res.ok) throw new Error("傳輸通道塞車");
-
-                const data = await res.json();
-                renderFinalReport(data);
-
-            } catch (err) {
-                alert("通訊異常，請確認 N8N 伺服器狀態。");
-            } finally {
-                overlay.classList.add('hidden');
-                isProcessing = false;
-                // 如果方案 B 正在運行，對獎完畢後自動恢復下一張發票的連續掃描
-                if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                    html5QrcodeScanner.resume();
+                if (res.ok) {
+                    let bulkResults = await res.json();
+                    if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                    renderResults(bulkResults);
+                    toggleLoading(true, "對獎完成！");
+                    setTimeout(() => { toggleLoading(false); }, 1000);
                 }
+            } catch (err) {
+                renderResults([{ status: "error", reason: "503", 發票字軌與號碼: "未知" }]);
+                toggleLoading(false);
             }
         }
 
-        function renderFinalReport(rawItem) {
-            document.getElementById('resultHeader').classList.remove('hidden');
-            const historyPanel = document.getElementById('historyPanel');
-            const data = rawItem.json ? rawItem.json : rawItem;
-            
-            const card = document.createElement('div');
-            
-            let displayPeriod = "期別格式錯誤";
-            if (data.發票期別 && data.發票期別.length === 5) {
-                const year = data.發票期別.substring(0, 3);
-                const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                const startMonth = endMonth - 1;
-                displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+        function processTraditionalImage(file, index, total) {
+            return new Promise((resolve) => {
+                const currentNum = index + 1;
+                toggleLoading(true, `正在優化發票影像品質 (${currentNum}/${total})...`);
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = async () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_SIDE = 1024;
+                        let width = img.width, height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_SIDE) { height *= MAX_SIDE / width; width = MAX_SIDE; }
+                        } else {
+                            if (height > MAX_SIDE) { width *= MAX_SIDE / height; height = MAX_SIDE; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        const base64Image = compressedDataUrl.split(',')[1];
+                        
+                        toggleLoading(true, `影像優化完畢，正在送往 AI 大腦對獎 (${currentNum}/${total})...`);
+
+                        try {
+                            const res = await fetch(N8N_WEBHOOK_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                                body: JSON.stringify({
+                                    body: { 
+                                        events: [{ 
+                                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
+                                            message: { text: "IMAGE_BASE64:" + base64Image } 
+                                        }] 
+                                    }
+                                })
+                            });
+                            if (res.ok) {
+                                let bulkResults = await res.json();
+                                if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                                renderResults(bulkResults);
+                            }
+                        } catch (err) { 
+                            renderResults([{ status: "error", reason: "503", 發票字軌與號碼: "未知" }]);
+                        }
+                        resolve();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.getElementById('imageCapture').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            if (files.length > 10) {
+                alert("一次最多請選擇 10 張傳統發票喔！");
+                e.target.value = "";
+                return;
             }
-
-            let statusColorClass = "border-slate-800 text-slate-400";
-            let rightSideHtml = "";
-
-            if (data.狀態 === "中獎") {
-                statusColorClass = "border-amber-500/50 text-amber-400 bg-amber-950/10";
-                rightSideHtml = `<div class="text-right"><span class="text-xs bg-amber-500/20 px-1.5 py-0.5 rounded font-black tracking-widest text-amber-400">🎉 ${data.狀態}</span><div class="text-sm font-black mt-1 text-amber-300">+${data.金額} 元</div></div>`;
-            } else if (data.狀態 === "未中獎") {
-                statusColorClass = "border-rose-950/40 text-rose-400/80 bg-rose-950/5";
-                rightSideHtml = `<div class="text-right"><span class="text-xs bg-rose-950/60 px-1.5 py-0.5 rounded font-bold text-rose-400/70">😮 ${data.狀態}</span></div>`;
-            } else if (data.狀態 === "尚未開獎") {
-                statusColorClass = "border-blue-900/40 text-blue-400 bg-blue-950/10";
-                rightSideHtml = `<div class="text-right"><span class="text-xs bg-blue-950/60 px-1.5 py-0.5 rounded font-bold text-blue-400">⏳ ${data.狀態}</span></div>`;
-            } else if (data.狀態 === "已逾期") {
-                statusColorClass = "border-slate-900 text-slate-500 bg-slate-900/10";
-                rightSideHtml = `<div class="text-right"><span class="text-xs bg-slate-900 px-1.5 py-0.5 rounded font-bold text-slate-500">📴 ${data.狀態}</span></div>`;
-            } else {
-                // 影像模糊或異常兜底
-                statusColorClass = "border-rose-950/60 text-rose-400 bg-rose-950/5";
-                rightSideHtml = `<div class="text-right"><span class="text-xs bg-rose-900/40 px-1.5 py-0.5 rounded font-bold text-rose-400">❌ 失敗</span></div>`;
+            processedCount = 0;
+            const totalFiles = files.length;
+            for (let i = 0; i < totalFiles; i++) {
+                await processTraditionalImage(files[i], i, totalFiles);
             }
+            toggleLoading(true, "全部傳統發票對獎完成！");
+            setTimeout(() => { toggleLoading(false); }, 1200);
+            e.target.value = ""; 
+        });
 
-            card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-xl ${statusColorClass}`;
-            card.innerHTML = `
-                <div class="text-xs space-y-0.5 text-left">
-                    <span class="font-black block text-slate-200 text-base tracking-widest">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                    <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
-                    <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '影像解碼'} | 對獎完成</span>
-                </div>
-                ${rightSideHtml}
-            `;
-            
-            historyPanel.insertBefore(card, historyPanel.firstChild);
+        // 🎯 2.0 完全體對齊渲染引擎：動態解包 2.0 清爽 Payload
+        function renderResults(items) {
+            const panel = document.getElementById('resultPanel');
+            const box = document.getElementById('resultBox');
+            const countBadge = document.getElementById('resultCount');
+            panel.classList.remove('hidden');
+
+            items.forEach(rawItem => {
+                processedCount++;
+                countBadge.innerText = `${processedCount} 張發票`;
+                const data = rawItem.json ? rawItem.json : rawItem;
+                const card = document.createElement('div');
+                
+                if (data.status === "success" && data.發票字軌與號碼) {
+                    // 📅 翻譯 2.0 期別 (11506 ➔ 115年05-06月)
+                    let displayPeriod = "期別格式錯誤";
+                    if (data.發票期別 && data.發票期別.length === 5) {
+                        const year = data.發票期別.substring(0, 3);
+                        const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                        const startMonth = endMonth - 1;
+                        displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                    }
+
+                    // 🎰 依據 2.0 狀態與金額進行工業級色彩對齊
+                    let statusColorClass = "border-slate-800 text-slate-400";
+                    let rightSideHtml = "";
+
+                    if (data.狀態 === "中獎") {
+                        statusColorClass = "border-amber-500/50 text-amber-400 bg-amber-950/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-amber-500/20 px-1.5 py-0.5 rounded font-black tracking-widest text-amber-400">🎉 ${data.狀態}</span><div class="text-sm font-black mt-1 text-amber-300">+${data.金額} 元</div></div>`;
+                    } else if (data.狀態 === "未中獎") {
+                        statusColorClass = "border-rose-950/40 text-rose-400/80 bg-rose-950/5";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-rose-950/60 px-1.5 py-0.5 rounded font-bold text-rose-400/70">😮 ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "尚未開獎") {
+                        statusColorClass = "border-blue-900/40 text-blue-400 bg-blue-950/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-blue-950/60 px-1.5 py-0.5 rounded font-bold text-blue-400">⏳ ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "已逾期") {
+                        statusColorClass = "border-slate-900 text-slate-500 bg-slate-900/10";
+                        rightSideHtml = `<div class="text-right"><span class="text-xs bg-slate-900 px-1.5 py-0.5 rounded font-bold text-slate-500">📴 ${data.狀態}</span></div>`;
+                    }
+
+                    card.className = `p-3 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-slate-200 text-base tracking-widest">📄 ${data.發票字軌與號碼}</span>
+                            <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
+                } else {
+                    card.className = "p-3 bg-slate-950/80 rounded-xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg border-rose-950/60 text-rose-400";
+                    let errMsg = "影像模糊不清";
+                    if (data.reason && data.reason.includes("503")) errMsg = "AI 大腦塞車中";
+                    if (data.reason === "not_invoice") errMsg = "這張不是台灣發票喔";
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-slate-400">❌ 讀取失敗</span>
+                            <span class="text-slate-600 font-mono text-[10px]">建議使用手動輸入</span>
+                        </div>
+                        <div class="text-xs font-bold text-rose-500 text-right">${errMsg}</div>
+                    `;
+                }
+                box.insertBefore(card, box.firstChild);
+            });
         }
     </script>
 </body>
