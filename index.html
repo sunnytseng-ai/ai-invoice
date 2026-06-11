@@ -126,7 +126,7 @@
 
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
             if (!isLineEnv) {
-                const mockData = prompt("【MVP 測試提示】請貼上電子發票左側 QRCode 的真實解碼字串：");
+                const mockData = prompt("【MVP 測試提示】請貼上電子發票 QRCode 的真實解碼字串（可貼上雙碼同掃或右側碼進行測試）：");
                 if (mockData) { fireQrCodeResult(mockData); }
                 return;
             }
@@ -143,6 +143,20 @@
         });
 
         async function fireQrCodeResult(decodedText) {
+            // 🎯 1. 隱形防呆智慧核心：全域掃描合法的台灣發票左側碼骨架特徵 (2碼英文 + 8碼數字 + 5碼期別)
+            const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
+            const matchResult = decodedText.match(validQrRegex);
+
+            // 🚨 2. 剛性判定：全身上下搜遍了，完全找不到正確的左側碼特徵 ➔ 判定為「純單獨掃到右側明細碼」
+            if (!matchResult) {
+                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫我瞄準發票「左邊」那顆正方形重新掃描喔！📸");
+                toggleLoading(false);
+                return;
+            }
+
+            // 🚀 3. 自動相容切片：不論是雙碼同掃、大字串雜訊，精準截取正確的左側發票結構開頭，溫柔秒通車！
+            const sanitizedQrText = decodedText.substring(matchResult.index).trim();
+
             toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
@@ -155,7 +169,7 @@
                                     userId: REAL_USER_ID,
                                     displayName: REAL_DISPLAY_NAME
                                 }, 
-                                message: { text: "QR_DECODED:" + decodedText } 
+                                message: { text: "QR_DECODED:" + sanitizedQrText } 
                             }] 
                         }
                     })
