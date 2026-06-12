@@ -39,7 +39,7 @@
             </header>
 
             <div class="space-y-4">
-                <div onclick="window.location.href='./manual.html'" class="bg-slate-900/60 border border-slate-900 hover:border-purple-500/40 rounded-3xl p-5 shadow-2xl cursor-pointer transition duration-300 group">
+                <div onclick="window.location.href='/ai-invoice/manual.html'" class="bg-slate-900/60 border border-slate-900 hover:border-purple-500/40 rounded-3xl p-5 shadow-2xl cursor-pointer transition duration-300 group">
                     <div class="flex items-center justify-between">
                         <div class="space-y-1">
                             <h3 class="text-lg font-black text-slate-100 group-hover:text-purple-400 transition">✍️ 網頁手動補登</h3>
@@ -70,10 +70,8 @@
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
         let REAL_DISPLAY_NAME = "PC網頁端使用者";
 
-        // 🛡️ 剛性生命週期熔斷晶片：1.5 秒內若 LINE 引擎沒回應，強行撕開隱藏遮罩！
         document.addEventListener("DOMContentLoaded", () => {
             const fallbackUnlocker = setTimeout(() => {
-                console.warn("🛡️ 啟動防禦熔斷強制解鎖入口");
                 document.getElementById('envBadge').innerText = `📱 LINE 快速相容入口`;
                 unlockUI();
             }, 1500);
@@ -106,7 +104,6 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 🎯 核心規格化 QR_CODE 噴射引擎
         async function fireQrCodeResult(decodedText) {
             const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
             const matchResult = decodedText.match(validQrRegex);
