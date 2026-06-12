@@ -22,7 +22,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none no-scrollbar">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col select-none no-scrollbar overflow-y-auto">
 
     <!-- 🔔 全域自定義確認對話框 (Custom Alert Modal - SI 級抗屏蔽安全方案) -->
     <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
@@ -60,22 +60,22 @@
             </div>
         </header>
 
-        <!-- 歷史數據主要呈顯區 -->
-        <main class="w-full flex-1 my-3 overflow-y-auto no-scrollbar space-y-3 animate-fadeIn">
-            
-            <!-- 數據概覽總結卡片 (sticky) -->
-            <div id="summaryCard" class="sticky top-0 z-10 bg-slate-950 pb-2 hidden">
-                <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 grid grid-cols-2 gap-4 text-center shadow-xl">
-                    <div class="border-r border-slate-800">
-                        <span class="text-[14px] text-slate-500 font-black block">累計對獎張數</span>
-                        <span id="totalCount" class="text-xl font-mono font-black text-slate-200 mt-1 block">0 張</span>
-                    </div>
-                    <div>
-                        <span class="text-[14px] text-amber-500 font-black block">🎉 幸運中獎金額</span>
-                        <span id="totalAmount" class="text-xl font-mono font-black text-amber-400 mt-1 block">0 元</span>
-                    </div>
+        <!-- 數據概覽總結卡片 (sticky) -->
+        <div id="summaryCard" class="sticky top-0 z-10 bg-slate-950 pb-2 hidden">
+            <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 grid grid-cols-2 gap-4 text-center shadow-xl">
+                <div class="border-r border-slate-800">
+                    <span class="text-[14px] text-slate-500 font-black block">累計對獎張數</span>
+                    <span id="totalCount" class="text-xl font-mono font-black text-slate-200 mt-1 block">0 張</span>
+                </div>
+                <div>
+                    <span class="text-[14px] text-amber-500 font-black block">🎉 幸運中獎金額</span>
+                    <span id="totalAmount" class="text-xl font-mono font-black text-amber-400 mt-1 block">0 元</span>
                 </div>
             </div>
+        </div>
+
+        <!-- 歷史數據主要呈顯區 -->
+        <main class="w-full flex-1 my-3 space-y-3 animate-fadeIn">
 
             <!-- 空白狀態提示 -->
             <div id="emptyState" class="text-center py-20 space-y-2 hidden">
