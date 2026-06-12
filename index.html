@@ -23,11 +23,23 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
 
+    <!-- 🔔 全域自定義美化通知視窗 (Toast) -->
+    <div id="customToast" class="fixed inset-x-4 top-6 max-w-sm mx-auto z-50 bg-slate-900/95 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-2xl flex items-start space-x-3 transition-all duration-300 transform -translate-y-24 opacity-0 pointer-events-none">
+        <span id="toastIcon" class="text-xl">⚠️</span>
+        <div class="flex-1 text-left">
+            <h4 id="toastTitle" class="text-xs font-black tracking-wider uppercase text-slate-400">系統提示</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <button onclick="closeToast()" class="text-slate-500 hover:text-slate-300 text-sm font-bold px-1.5 py-0.5">&times;</button>
+    </div>
+
+    <!-- 系統初始化擋牆屏障 -->
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
         <div class="loading-spinner"></div>
         <p class="text-xs font-semibold text-slate-500 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
     </div>
 
+    <!-- 核心應用程式配置 -->
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
         
         <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
@@ -43,6 +55,7 @@
 
         <main class="w-full my-auto space-y-4 animate-fadeIn">
             <div class="space-y-4 py-2">
+                <!-- 📸 傳統發票卡片佈局 -->
                 <label class="relative flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
                     <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
                     <div class="flex items-center space-x-4 pointer-events-none">
@@ -54,6 +67,7 @@
                     </div>
                 </label>
 
+                <!-- ⚡ 電子發票 QR Code 卡片佈局 -->
                 <button id="btnStartQrScan" class="w-full flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
                     <div class="flex items-center space-x-4">
                         <span class="text-4xl group-hover:scale-105 transition duration-200">⚡</span>
@@ -65,6 +79,7 @@
                 </button>
             </div>
 
+            <!-- 即時對獎報告面板 -->
             <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 當前對獎報告明細</span>
@@ -79,6 +94,7 @@
         </footer>
     </div>
 
+    <!-- 傳輸遮罩 -->
     <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
         <p id="loadingText" class="text-sm font-bold text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
@@ -93,8 +109,64 @@
         let processedCount = 0;
         let isLineEnv = false;
 
+        // =========================================================================
+        // 🔔 全域 Toast 通知控制核心 (SI-Grade 抗屏蔽方案)
+        // =========================================================================
+        let toastTimer = null;
+        function showToast(msg, title = "系統提示", icon = "⚠️", type = "warning") {
+            const toast = document.getElementById('customToast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastIcon.innerText = icon;
+            toastTitle.innerText = title;
+            toastMessage.innerText = msg;
+
+            // 清理舊樣式
+            toast.classList.remove('border-rose-500/50', 'border-emerald-500/50', 'border-amber-500/50');
+            toastTitle.classList.remove('text-rose-400', 'text-emerald-400', 'text-amber-400');
+
+            // 依類型注入新樣式
+            if (type === 'error') {
+                toast.classList.add('border-rose-500/50');
+                toastTitle.classList.add('text-rose-400');
+            } else if (type === 'success') {
+                toast.classList.add('border-emerald-500/50');
+                toastTitle.classList.add('text-emerald-400');
+            } else {
+                toast.classList.add('border-amber-500/50');
+                toastTitle.classList.add('text-amber-400');
+            }
+
+            // 開窗滑入動效
+            toast.classList.remove('-translate-y-24', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(closeToast, 4500);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('customToast');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
+
+            // 🎯 WBS 3.0: 剛性歷史紀錄路由攔截
+            const hasHistoryIntent = urlParams.get('page') === 'history' || 
+                                     window.location.hash.includes('page=history') || 
+                                     window.location.search.includes('page=history');
+
+            if (hasHistoryIntent) {
+                window.location.href = "./history.html" + window.location.search;
+                return; 
+            }
+
+            // 保持原有的 manual 路由攔截
             const hasManualIntent = urlParams.get('page') === 'manual' || 
                                     window.location.hash.includes('page=manual') || 
                                     window.location.search.includes('page=manual');
@@ -165,7 +237,7 @@
             const matchResult = decodedText.match(validQrRegex);
             
             if (!matchResult) {
-                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
+                showToast("哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！", "掃描提醒", "📸", "warning");
                 return;
             }
             
@@ -204,24 +276,30 @@
                 }
             } catch (err) { 
                 console.error(err); 
-                alert("❌ 對獎傳輸失敗，請確認 ngrok 狀態或中台畫布開關。");
+                showToast("對獎傳輸失敗，請確認 ngrok 狀態或中台畫布開關。", "傳輸失敗", "❌", "error");
             } finally { 
                 toggleLoading(false); 
             }
         }
 
-        // 📸 傳統發票圖片批量解包流 (已完美整合副檔名防呆熔斷機制)
+        // 📸 傳統發票圖片批量解包流 (WBS 3.0: 已限縮上傳上限至 5 張，並加入副檔名防呆熔斷機制)
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files); if (files.length === 0) return;
 
-            // 🧠 核心防呆白名單過濾機制
+            // 🎯 WBS 3.0 異動點：張數剛性限制為 5 張 (改用自定義 Toast 顯示，100% 穿透防封鎖)
+            if (files.length > 5) {
+                showToast("為了維護傳輸穩定度，單次最多只能選擇 5 張發票照片喔！請重新選取。", "超過批次上限", "⚠️", "warning");
+                e.target.value = ""; 
+                return; 
+            }
+
             const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.heic|\.webp)$/i;
             const hasInvalidFile = files.some(file => !allowedExtensions.test(file.name));
             
             if (hasInvalidFile) {
-                alert("⚠️ 偵測到不支援的檔案格式！\n\n小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。📸");
-                e.target.value = ""; // 清空違規物件，釋放核心執行緒
-                return; // 🎯 剛性熔斷：拒絕向後端 N8N 噴射髒資料
+                showToast("小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。", "格式不符", "⚠️", "warning");
+                e.target.value = ""; 
+                return; 
             }
 
             processedCount = 0; document.getElementById('resultBox').innerHTML = "";
@@ -250,6 +328,7 @@
             toggleLoading(false); e.target.value = "";
         });
 
+        // 🎨 渲染引擎 (雙月顯示修正)
         function renderResults(items) {
             const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
@@ -266,6 +345,7 @@
                     document.getElementById('resultCount').innerText = `0 張發票`;
                 }
 
+                // 📅 雙月精確翻譯 (例如 11505 顯示 05-06月)
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
