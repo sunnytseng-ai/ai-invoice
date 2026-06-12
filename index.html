@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 拍拍中獎王 | 智慧門戶</title>
+    <title>AI 拍拍中獎王</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -64,17 +64,23 @@
                         <span class="text-4xl group-hover:scale-105 transition duration-200">📸</span>
                         <div class="text-left">
                             <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
-                            <span class="block text-xs text-slate-500 mt-0.5">支援多張相簿選取 ➔ 呼叫 AI 智慧辨識</span>
                         </div>
                     </div>
                 </label>
 
                 <button id="btnStartQrScan" class="w-full flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
                     <div class="flex items-center space-x-4">
-                        <span class="text-4xl group-hover:scale-105 transition duration-200">⚡</span>
+                        <span class="group-hover:scale-105 transition duration-200 flex-shrink-0">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-slate-200 group-hover:text-emerald-400 transition duration-200">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+                                <line x1="14" y1="14" x2="14" y2="14.01"/><line x1="17" y1="14" x2="17" y2="14.01"/><line x1="20" y1="14" x2="20" y2="14.01"/>
+                                <line x1="14" y1="17" x2="14" y2="17.01"/><line x1="17" y1="17" x2="20" y2="17"/><line x1="20" y1="20" x2="20" y2="20.01"/>
+                                <line x1="14" y1="20" x2="17" y2="20"/>
+                            </svg>
+                        </span>
                         <div>
-                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝電子 QRCode 發票</span>
-                            <span class="block text-xs text-slate-500 mt-0.5">調用 LINE 原生高感度鏡頭 ➔ 嗶一聲秒對</span>
+                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">掃描電子發票 QRCode </span>
                         </div>
                     </div>
                 </button>
@@ -90,7 +96,7 @@
         </main>
 
         <footer class="text-center py-4 border-t border-slate-900 text-xs text-slate-600 font-bold tracking-wide">
-            AI INVOICE EXPERT SYSTEM v2.0
+            AI 工具煉成記 • Sunny Tseng
         </footer>
     </div>
 
@@ -101,7 +107,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
+        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
         let REAL_DISPLAY_NAME = "PC網頁端使用者";
@@ -188,7 +194,7 @@
 
             setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
 
-            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+            if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
                 isLineEnv = false;
                 document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
