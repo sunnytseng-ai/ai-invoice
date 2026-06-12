@@ -27,7 +27,7 @@
 
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">系統準備中</p>
+        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">SYSTEM INITIALIZING</p>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto">
@@ -35,7 +35,15 @@
         <!-- 置頂輸入區塊 -->
         <div class="sticky top-0 z-10 pb-3" style="background-color:#C8DDF0;">
             <header class="text-center pt-2 pb-3" style="border-bottom:1px solid #B0CDE0;">
-                <h1 class="text-xl font-black tracking-wider" style="color:#1A2E4A;">手動輸入發票</h1>
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 text-center">
+                        <h1 class="text-xl font-black tracking-wider" style="color:#1A2E4A;">手動輸入發票</h1>
+                    </div>
+                    <button id="btnCollapseInput" class="hidden items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black tracking-wide transition duration-200" style="background:#EBF4FB; border:1px solid #B0CDE0; color:#3A5A7A;">
+                        <span id="collapseArrow">▲</span>
+                        <span id="collapseLabel">收起</span>
+                    </button>
+                </div>
             </header>
 
             <div class="rounded-3xl shadow-xl space-y-3 mt-3" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
@@ -258,6 +266,17 @@
             countBadge.innerText = `${invoiceList.length}張發票`;
             btnSubmitAll.innerText = `🔥 點我對獎 ${invoiceList.length} 張發票！`;
 
+            // 3張以上才顯示收合按鈕
+            const btn = document.getElementById('btnCollapseInput');
+            if (invoiceList.length >= 3) {
+                btn.classList.remove('hidden');
+                btn.classList.add('flex');
+            } else {
+                btn.classList.add('hidden');
+                btn.classList.remove('flex');
+                expandInput();
+            }
+
             invoiceList.forEach((item, index) => {
                 const year = item.發票期別.substring(0, 3);
                 const startM = parseInt(item.發票期別.substring(3, 5), 10);
@@ -367,6 +386,33 @@
                 box.insertBefore(card, box.firstChild);
             });
         }
+        // 收合輸入區塊
+        let inputCollapsed = false;
+        const inputCard = document.querySelector('.sticky.top-0 .rounded-3xl');
+
+        function collapseInput() {
+            inputCollapsed = true;
+            inputCard.style.display = 'none';
+            document.getElementById('collapseArrow').innerText = '▼';
+            document.getElementById('collapseLabel').innerText = '展開';
+            document.getElementById('manifestBox').style.maxHeight = '60vh';
+        }
+
+        function expandInput() {
+            inputCollapsed = false;
+            if (inputCard) inputCard.style.display = '';
+            const arrow = document.getElementById('collapseArrow');
+            const label = document.getElementById('collapseLabel');
+            if (arrow) arrow.innerText = '▲';
+            if (label) label.innerText = '收起';
+            document.getElementById('manifestBox').style.maxHeight = '12rem';
+        }
+
+        document.getElementById('btnCollapseInput').addEventListener('click', () => {
+            if (inputCollapsed) expandInput();
+            else collapseInput();
+        });
+
     </script>
 </body>
 </html>
