@@ -50,8 +50,8 @@
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
         
         <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
-            <div class="text-left">
-                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 text-center w-full">歷史對獎紀錄</h1>
+            <div class="text-center">
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">歷史對獎紀錄</h1>
                 <div id="envBadge" class="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wide">環境校準中...</div>
             </div>
             <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-full shadow-inner">
@@ -293,7 +293,7 @@
                 // 渲染群組標頭
                 const headerDiv = document.createElement('div');
                 headerDiv.className = "flex items-center justify-between border-b border-slate-900/80 pb-2.5";
-                headerDiv.innerHTML = '<div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full ' + (hasPending ? 'bg-sky-500 animate-pulse' : (groupBonus > 0 ? 'bg-amber-500' : 'bg-slate-700')) + '"></span><span class="text-sm font-black text-slate-200">' + displayPeriod + '</span></div><div class="flex items-center space-x-2"><span class="text-[10px] text-slate-500 font-bold">共 ' + groupCount + ' 張</span><span class="text-[10px] px-2 py-0.5 rounded-full font-black border ' + groupStatusClass + '">' + groupStatusText + '</span></div>';
+                headerDiv.innerHTML = '<div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full ' + (hasPending ? 'bg-sky-500 animate-pulse' : (groupBonus > 0 ? 'bg-amber-500' : 'bg-slate-700')) + '"></span><span class="text-lg font-black text-slate-200">' + displayPeriod + '</span></div><div class="flex items-center space-x-2"><span class="text-[10px] text-slate-500 font-bold">共 ' + groupCount + ' 張</span><span class="text-[10px] px-2 py-0.5 rounded-full font-black border ' + groupStatusClass + '">' + groupStatusText + '</span></div>';
                 periodCard.appendChild(headerDiv);
 
                 // 渲染群組內發票明細（中獎優先，金額大到小）
@@ -325,7 +325,7 @@
                     }
 
                     itemDiv.className = "p-3 rounded-xl border flex items-center justify-between transition duration-200 " + statusColorClass;
-                    itemDiv.innerHTML = '<div class="text-left space-y-0.5"><span class="font-bold block text-slate-200 font-mono tracking-wide" style="font-size:14px">' + (inv.發票字軌與號碼 || '未知號碼') + '</span></div><div class="text-right space-y-0.5"><span class="font-black" style="font-size:14px">' + statusText + '</span>' + (amountText ? '<div class="font-mono font-black text-amber-400" style="font-size:14px">' + amountText + '</div>' : '') + '</div>';
+                    itemDiv.innerHTML = '<div class="text-left space-y-0.5"><span class="font-bold block text-slate-200 font-mono tracking-wide" style="font-size:18px">' + (inv.發票字軌與號碼 || '未知號碼') + '</span></div><div class="text-right space-y-0.5"><span class="font-black" style="font-size:14px">' + statusText + '</span>' + (amountText ? '<div class="font-mono font-black text-amber-400" style="font-size:14px">' + amountText + '</div>' : '') + '</div>';
                     listDiv.appendChild(itemDiv);
                 });
 
