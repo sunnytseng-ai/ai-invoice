@@ -104,7 +104,7 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
+        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
         let REAL_DISPLAY_NAME = "PC網頁端補登使用者";
@@ -121,7 +121,7 @@
                 unlockUI();
             }, 1500);
 
-            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+            if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
                 clearTimeout(fallbackUnlocker);
                 document.getElementById('envBadge').innerText = `🖥️ PC 跨端補除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
