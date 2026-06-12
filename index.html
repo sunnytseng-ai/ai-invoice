@@ -23,14 +23,20 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
 
-    <!-- 🔔 全域自定義美化通知視窗 (Toast) -->
-    <div id="customToast" class="fixed inset-x-4 top-6 max-w-sm mx-auto z-50 bg-slate-900/95 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-2xl flex items-start space-x-3 transition-all duration-300 transform -translate-y-24 opacity-0 pointer-events-none">
-        <span id="toastIcon" class="text-xl">⚠️</span>
-        <div class="flex-1 text-left">
-            <h4 id="toastTitle" class="text-xs font-black tracking-wider uppercase text-slate-400">系統提示</h4>
-            <p id="toastMessage" class="text-xs text-slate-300 mt-1 leading-relaxed whitespace-pre-line"></p>
+    <!-- 🔔 全域自定義確認對話框 (Custom Alert Modal - SI 級抗屏蔽安全方案) -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+    
+    <div id="customAlert" class="fixed inset-x-4 top-1/3 max-w-sm mx-auto z-50 bg-slate-900/95 border border-slate-800 p-6 rounded-3xl shadow-2xl transition-all duration-300 transform scale-90 opacity-0 pointer-events-none text-center space-y-4">
+        <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl" id="alertIconBg">
+            <span id="alertIcon">⚠️</span>
         </div>
-        <button onclick="closeToast()" class="text-slate-500 hover:text-slate-300 text-sm font-bold px-1.5 py-0.5">&times;</button>
+        <div class="space-y-1">
+            <h3 id="alertTitle" class="text-base font-black tracking-wider text-slate-200">系統提示</h3>
+            <p id="alertMessage" class="text-xs text-slate-400 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-slate-700/50 shadow">
+            確認
+        </button>
     </div>
 
     <!-- 系統初始化擋牆屏障 -->
@@ -110,47 +116,58 @@
         let isLineEnv = false;
 
         // =========================================================================
-        // 🔔 全域 Toast 通知控制核心 (SI-Grade 抗屏蔽方案)
+        // 🔔 全域對話框控制核心 (自訂 iOS/Android 質感 Alert 元件)
         // =========================================================================
-        let toastTimer = null;
-        function showToast(msg, title = "系統提示", icon = "⚠️", type = "warning") {
-            const toast = document.getElementById('customToast');
-            const toastIcon = document.getElementById('toastIcon');
-            const toastTitle = document.getElementById('toastTitle');
-            const toastMessage = document.getElementById('toastMessage');
+        function showAlert(msg, title = "系統提示", icon = "⚠️", type = "warning") {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertIconBg = document.getElementById('alertIconBg');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const confirmBtn = document.getElementById('alertConfirmBtn');
 
-            toastIcon.innerText = icon;
-            toastTitle.innerText = title;
-            toastMessage.innerText = msg;
+            alertIcon.innerText = icon;
+            alertTitle.innerText = title;
+            alertMessage.innerText = msg;
 
-            // 清理舊樣式
-            toast.classList.remove('border-rose-500/50', 'border-emerald-500/50', 'border-amber-500/50');
-            toastTitle.classList.remove('text-rose-400', 'text-emerald-400', 'text-amber-400');
+            // 移除舊樣式
+            alertBox.classList.remove('border-rose-500/30', 'border-emerald-500/30', 'border-amber-500/30');
+            alertIconBg.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl";
+            confirmBtn.className = "w-full font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow border";
 
-            // 依類型注入新樣式
+            // 依據類型動態渲染配色與按鈕
             if (type === 'error') {
-                toast.classList.add('border-rose-500/50');
-                toastTitle.classList.add('text-rose-400');
+                alertBox.classList.add('border-rose-500/30');
+                alertIconBg.classList.add('bg-rose-950/30', 'text-rose-400');
+                confirmBtn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'text-slate-950', 'border-rose-500/20');
             } else if (type === 'success') {
-                toast.classList.add('border-emerald-500/50');
-                toastTitle.classList.add('text-emerald-400');
+                alertBox.classList.add('border-emerald-500/30');
+                alertIconBg.classList.add('bg-emerald-950/30', 'text-emerald-400');
+                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
             } else {
-                toast.classList.add('border-amber-500/50');
-                toastTitle.classList.add('text-amber-400');
+                alertBox.classList.add('border-amber-500/30');
+                alertIconBg.classList.add('bg-amber-950/30', 'text-amber-400');
+                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
             }
 
-            // 開窗滑入動效
-            toast.classList.remove('-translate-y-24', 'opacity-0', 'pointer-events-none');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(closeToast, 4500);
+            // 動態展示動畫
+            backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            
+            alertBox.classList.remove('scale-90', 'opacity-0', 'pointer-events-none');
+            alertBox.classList.add('scale-100', 'opacity-100');
         }
 
-        function closeToast() {
-            const toast = document.getElementById('customToast');
-            toast.classList.remove('translate-y-0', 'opacity-100');
-            toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
+        function closeAlert() {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0', 'pointer-events-none');
+
+            alertBox.classList.remove('scale-100', 'opacity-100');
+            alertBox.classList.add('scale-90', 'opacity-0', 'pointer-events-none');
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -162,7 +179,7 @@
                                      window.location.search.includes('page=history');
 
             if (hasHistoryIntent) {
-                window.location.href = "./history.html" + window.location.search;
+                window.location.href = "./history.html" + urlParams.toString();
                 return; 
             }
 
@@ -172,7 +189,7 @@
                                     window.location.search.includes('page=manual');
 
             if (hasManualIntent) {
-                window.location.href = "./manual.html" + window.location.search;
+                window.location.href = "./manual.html" + urlParams.toString();
                 return; 
             }
 
@@ -237,7 +254,7 @@
             const matchResult = decodedText.match(validQrRegex);
             
             if (!matchResult) {
-                showToast("哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！", "掃描提醒", "📸", "warning");
+                showAlert("哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！", "掃描提醒", "📸", "warning");
                 return;
             }
             
@@ -276,7 +293,7 @@
                 }
             } catch (err) { 
                 console.error(err); 
-                showToast("對獎傳輸失敗，請確認 ngrok 狀態或中台畫布開關。", "傳輸失敗", "❌", "error");
+                showAlert("對獎傳輸失敗，請確認 ngrok 狀態或中台畫布開關。", "傳輸失敗", "❌", "error");
             } finally { 
                 toggleLoading(false); 
             }
@@ -286,9 +303,9 @@
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files); if (files.length === 0) return;
 
-            // 🎯 WBS 3.0 異動點：張數剛性限制為 5 張 (改用自定義 Toast 顯示，100% 穿透防封鎖)
+            // 🎯 WBS 3.0 異動點：張數剛性限制為 5 張 (改用自定義對話框顯示，100% 穿透防屏蔽，強制點選確認)
             if (files.length > 5) {
-                showToast("為了維護傳輸穩定度，單次最多只能選擇 5 張發票照片喔！請重新選取。", "超過批次上限", "⚠️", "warning");
+                showAlert("為了維護傳輸穩定度，單次最多只能選擇 5 張發票照片喔！請重新選取。", "超過批次上限", "⚠️", "warning");
                 e.target.value = ""; 
                 return; 
             }
@@ -297,7 +314,7 @@
             const hasInvalidFile = files.some(file => !allowedExtensions.test(file.name));
             
             if (hasInvalidFile) {
-                showToast("小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。", "格式不符", "⚠️", "warning");
+                showAlert("小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。", "格式不符", "⚠️", "warning");
                 e.target.value = ""; 
                 return; 
             }
