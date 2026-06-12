@@ -207,16 +207,7 @@
             if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
             if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
 
-            // 🔍 重複偵測：同字軌＋號碼已在清單中
-            const duplicateKey = finalTrack + "-" + finalNum;
-            const isDuplicate = invoiceList.some(item => item.發票字軌與號碼 === duplicateKey);
-            if (isDuplicate) {
-                alert(`⚠️ 發票 ${duplicateKey} 已經在清單裡囉！\n請確認是否輸入重複了。`);
-                numInput.focus();
-                numInput.select();
-                return;
-            }
-
+            // 先計算 finalPeriod（收束雙數月）
             let finalPeriod = rawPeriod;
             if (rawPeriod.length === 5) {
                 const year = rawPeriod.substring(0, 3);
@@ -224,6 +215,16 @@
                 if (month % 2 === 0) {
                     finalPeriod = year + String(month - 1).padStart(2, '0');
                 }
+            }
+
+            // 重複偵測：同期別＋同字軌＋同號碼才算重複
+            const duplicateKey = finalTrack + "-" + finalNum;
+            const isDuplicate = invoiceList.some(item => item.發票字軌與號碼 === duplicateKey && item.發票期別 === finalPeriod);
+            if (isDuplicate) {
+                alert(`⚠️ 發票 ${duplicateKey} 已經在清單裡囉！\n請確認是否輸入重複了。`);
+                numInput.focus();
+                numInput.select();
+                return;
             }
 
             const invoiceItem = {
