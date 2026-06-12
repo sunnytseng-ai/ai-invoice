@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>歷史對獎紀錄 | AI 拍拍中獎王</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 45px;
+            height: 45px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #appLayout { display: none !important; }
+        .animate-fadeIn { animation: fadeIn 0.35s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none no-scrollbar">
+
+    <!-- 🔔 全域自定義確認對話框 (Custom Alert Modal - SI 級抗屏蔽安全方案) -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+    
+    <div id="customAlert" class="fixed inset-x-4 top-1/3 max-w-sm mx-auto z-50 bg-slate-900/95 border border-slate-800 p-6 rounded-3xl shadow-2xl transition-all duration-300 transform scale-90 opacity-0 pointer-events-none text-center space-y-4">
+        <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl" id="alertIconBg">
+            <span id="alertIcon">⚠️</span>
+        </div>
+        <div class="space-y-1">
+            <h3 id="alertTitle" class="text-base font-black tracking-wider text-slate-200">系統提示</h3>
+            <p id="alertMessage" class="text-xs text-slate-400 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-emerald-500/20 shadow">
+            確認
+        </button>
+    </div>
+
+    <!-- 系統初始化擋牆屏障 -->
+    <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
+        <div class="loading-spinner"></div>
+        <p class="text-xs font-semibold text-slate-500 tracking-widest animate-pulse">正在精準同步雲端帳簿...</p>
+    </div>
+
+    <!-- 核心應用程式配置 -->
+    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
+        
+        <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
+            <div class="text-left">
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">歷史對獎紀錄</h1>
+                <div id="envBadge" class="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wide">環境校準中...</div>
+            </div>
+            <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-full shadow-inner">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span class="text-[10px] font-mono font-black text-blue-400 tracking-widest">HISTORY</span>
+            </div>
+        </header>
+
+        <!-- 歷史數據主要呈顯區 -->
+        <main class="w-full flex-1 my-3 overflow-y-auto no-scrollbar space-y-3 animate-fadeIn">
+            
+            <!-- 數據概覽總結卡片 -->
+            <div id="summaryCard" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 grid grid-cols-2 gap-4 text-center hidden shadow-xl">
+                <div class="border-r border-slate-800">
+                    <span class="text-[10px] text-slate-500 font-black block">累計對獎張數</span>
+                    <span id="totalCount" class="text-xl font-mono font-black text-slate-200 mt-1 block">0 張</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-amber-500 font-black block">🎉 幸運中獎金額</span>
+                    <span id="totalAmount" class="text-xl font-mono font-black text-amber-400 mt-1 block">0 元</span>
+                </div>
+            </div>
+
+            <!-- 空白狀態提示 -->
+            <div id="emptyState" class="text-center py-20 space-y-2 hidden">
+                <span class="text-4xl block">📋</span>
+                <p class="text-sm font-bold text-slate-500">查無歷史對獎紀錄</p>
+                <p class="text-xs text-slate-600">趕快回首頁拍發票或掃瞄對獎吧！</p>
+            </div>
+
+            <!-- 歷史月份分群容器 -->
+            <div id="historyGroupContainer" class="space-y-4 pr-1"></div>
+        </main>
+
+        <!-- 頁尾安全跳轉通道 -->
+        <footer class="text-center py-4 border-t border-slate-900 flex items-center justify-center space-x-6 select-none animate-fadeIn">
+            <a href="./index.html" class="text-slate-500 hover:text-emerald-400 text-xs font-extrabold tracking-wider transition duration-200">
+                📸 拍照掃描對獎
+            </a>
+            <span class="text-slate-800">|</span>
+            <a href="./manual.html" class="text-slate-500 hover:text-purple-400 text-xs font-extrabold tracking-wider transition duration-200">
+                ✍️ 手動補登發票
+            </a>
+        </footer>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        const N8N_HISTORY_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
+        const LIFF_ID = '2010235526-CeuGpVfZ'; 
+        let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
+        let REAL_DISPLAY_NAME = "PC網頁端使用者";
+
+        // =========================================================================
+        // 🔔 全域對話框控制核心 (與 index.html 1:1 對齊)
+        // =========================================================================
+        function showAlert(msg, title = "系統提示", icon = "⚠️", type = "warning") {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertIconBg = document.getElementById('alertIconBg');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const confirmBtn = document.getElementById('alertConfirmBtn');
+
+            alertIcon.innerText = icon;
+            alertTitle.innerText = title;
+            alertMessage.innerText = msg;
+
+            alertBox.classList.remove('border-rose-500/30', 'border-emerald-500/30', 'border-amber-500/30');
+            alertIconBg.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl";
+            confirmBtn.className = "w-full font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow border";
+
+            if (type === 'error') {
+                alertBox.classList.add('border-rose-500/30');
+                alertIconBg.classList.add('bg-rose-950/30', 'text-rose-400');
+                confirmBtn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'text-slate-950', 'border-rose-500/20');
+            } else if (type === 'success') {
+                alertBox.classList.add('border-emerald-500/30');
+                alertIconBg.classList.add('bg-emerald-950/30', 'text-emerald-400');
+                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
+            } else {
+                alertBox.classList.add('border-amber-500/30');
+                alertIconBg.classList.add('bg-amber-950/30', 'text-amber-400');
+                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
+            }
+
+            backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            alertBox.classList.remove('scale-90', 'opacity-0', 'pointer-events-none');
+            alertBox.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeAlert() {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0', 'pointer-events-none');
+            alertBox.classList.remove('scale-100', 'opacity-100');
+            alertBox.classList.add('scale-90', 'opacity-0', 'pointer-events-none');
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
+
+            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                document.getElementById('envBadge').innerText = "🖥️ PC 歷史除錯模式 (ID: " + REAL_USER_ID + ")";
+                fetchHistoryData();
+                return;
+            }
+            
+            liff.init({ liffId: LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) { 
+                    liff.login(); 
+                } else {
+                    liff.getProfile().then(profile => { 
+                        REAL_USER_ID = profile.userId; 
+                        REAL_DISPLAY_NAME = profile.displayName;
+                        document.getElementById('envBadge').innerText = "📱 LINE 歷史同步模式 (" + REAL_DISPLAY_NAME + ")";
+                        fetchHistoryData();
+                    }).catch(err => { console.error(err); unlockUI(); });
+                }
+            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+        });
+
+        function unlockUI() {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
+        }
+
+        // =========================================================================
+        // 🔄 歷史對獎紀錄拉取核心 (與 index.html 統一規格 Payload 封裝)
+        // =========================================================================
+        async function fetchHistoryData() {
+            const payload = {
+                events: [{
+                    source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
+                    message: { text: JSON.stringify({ type: "FETCH_HISTORY" }) }
+                }]
+            };
+
+            try {
+                const res = await fetch(N8N_HISTORY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    let historyItems = await res.json();
+                    if (!Array.isArray(historyItems)) { historyItems = [historyItems]; }
+                    renderHistoryCards(historyItems);
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    unlockUI();
+                }
+            } catch (err) {
+                console.error("歷史拉取失敗:", err);
+                showAlert("雲端大腦同步失敗，請確認網路連線或 ngrok 畫布狀態。", "連線異常", "❌", "error");
+                document.getElementById('emptyState').classList.remove('hidden');
+                unlockUI();
+            }
+        }
+
+        // =========================================================================
+        // 🎨 歷史紀錄分群渲染引擎 (100% 迴避轉義與變數衝突)
+        // =========================================================================
+        function renderHistoryCards(items) {
+            unlockUI();
+            const box = document.getElementById('historyGroupContainer');
+            const summary = document.getElementById('summaryCard');
+            const empty = document.getElementById('emptyState');
+
+            const validItems = items.filter(raw => {
+                const d = raw.json ? raw.json : raw;
+                return d && d.發票字軌與號碼 && d.狀態 !== "not_invoice";
+            });
+
+            if (validItems.length === 0) {
+                empty.classList.remove('hidden');
+                summary.classList.add('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            summary.classList.remove('hidden');
+            box.innerHTML = "";
+
+            let grandTotalCount = validItems.length;
+            let grandTotalBonus = 0;
+
+            // Step 1: 依月份期別分組
+            const groups = {};
+            validItems.forEach(raw => {
+                const d = raw.json ? raw.json : raw;
+                const period = d.發票期別 || "未知期別";
+                if (!groups[period]) { groups[period] = []; }
+                groups[period].push(d);
+            });
+
+            // Step 2: 降序排序期別 (最新月份在前)
+            const sortedPeriods = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+            // Step 3: 開始分群渲染
+            sortedPeriods.forEach(period => {
+                const groupInvoices = groups[period];
+                const periodCard = document.createElement('div');
+                periodCard.className = "bg-slate-900/20 border border-slate-900/60 rounded-2xl p-4 space-y-3 shadow-md";
+
+                let displayPeriod = "期別格式錯誤";
+                if (period && period.length === 5) {
+                    const year = period.substring(0, 3);
+                    const startMonth = parseInt(period.substring(3, 5), 10);
+                    const endMonth = startMonth + 1;
+                    displayPeriod = year + "年" + String(startMonth).padStart(2, '0') + "-" + String(endMonth).padStart(2, '0') + "月";
+                } else {
+                    displayPeriod = period;
+                }
+
+                let groupCount = groupInvoices.length;
+                let groupBonus = 0;
+                let hasPending = false;
+
+                groupInvoices.forEach(inv => {
+                    if (inv.狀態 === "中獎") {
+                        const amt = parseInt(inv.金額, 10) || 0;
+                        groupBonus += amt;
+                        grandTotalBonus += amt;
+                    } else if (inv.狀態 === "尚未開獎") {
+                        hasPending = true;
+                    }
+                });
+
+                let groupStatusText = "";
+                let groupStatusClass = "";
+                if (hasPending) {
+                    groupStatusText = "⏳ 尚未開獎";
+                    groupStatusClass = "bg-sky-950 text-sky-400 border-sky-500/20";
+                } else if (groupBonus > 0) {
+                    groupStatusText = "🎉 中獎 $" + groupBonus;
+                    groupStatusClass = "bg-amber-950 text-amber-400 border-amber-500/20";
+                } else {
+                    groupStatusText = "😮 未中獎";
+                    groupStatusClass = "bg-slate-900 text-slate-500 border-slate-800";
+                }
+
+                // 渲染群組標頭
+                const headerDiv = document.createElement('div');
+                headerDiv.className = "flex items-center justify-between border-b border-slate-900/80 pb-2.5";
+                headerDiv.innerHTML = '<div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full ' + (hasPending ? 'bg-sky-500 animate-pulse' : (groupBonus > 0 ? 'bg-amber-500' : 'bg-slate-700')) + '"></span><span class="text-sm font-black text-slate-200">' + displayPeriod + '</span></div><div class="flex items-center space-x-2"><span class="text-[10px] text-slate-500 font-bold">共 ' + groupCount + ' 張</span><span class="text-[10px] px-2 py-0.5 rounded-full font-black border ' + groupStatusClass + '">' + groupStatusText + '</span></div>';
+                periodCard.appendChild(headerDiv);
+
+                // 渲染群組內發票明細
+                const listDiv = document.createElement('div');
+                listDiv.className = "space-y-2";
+
+                groupInvoices.forEach(inv => {
+                    const itemDiv = document.createElement('div');
+                    let statusColorClass = "border-slate-900 text-slate-400/70 bg-slate-900/20";
+                    let statusText = "";
+                    let amountText = "";
+
+                    if (inv.狀態 === "中獎") {
+                        statusColorClass = "border-amber-500/30 text-amber-400 bg-gradient-to-r from-amber-950/10 to-transparent";
+                        statusText = "🎉 中獎";
+                        amountText = "+" + inv.金額 + " 元";
+                    } else if (inv.狀態 === "未中獎") {
+                        statusColorClass = "border-slate-950 text-slate-400/50 bg-slate-950/10";
+                        statusText = "未中獎";
+                    } else if (inv.狀態 === "尚未開獎") {
+                        statusColorClass = "border-sky-500/20 text-sky-400 bg-gradient-to-r from-sky-950/5 to-transparent";
+                        statusText = "⏳ 尚未開獎";
+                    }
+
+                    itemDiv.className = "p-3 rounded-xl border flex items-center justify-between text-xs transition duration-200 " + statusColorClass;
+                    itemDiv.innerHTML = '<div class="text-left space-y-0.5"><span class="font-bold block text-slate-200 font-mono tracking-wide">' + (inv.發票字軌與號碼 || '未知號碼') + '</span><span class="text-slate-500 font-mono text-[9px] block">' + (inv.發票輸入方式 || '系統存檔') + '</span></div><div class="text-right space-y-0.5"><span class="text-[9px] font-black">' + statusText + '</span>' + (amountText ? '<div class="font-mono font-black text-amber-400 text-xs">' + amountText + '</div>' : '') + '</div>';
+                    listDiv.appendChild(itemDiv);
+                });
+
+                periodCard.appendChild(listDiv);
+                box.appendChild(periodCard);
+            });
+
+            // 更新總合看板 KPI
+            document.getElementById('totalCount').innerText = grandTotalCount + " 張";
+            document.getElementById('totalAmount').innerText = grandTotalBonus + " 元";
+        }
+    </script>
+</body>
+</html>
