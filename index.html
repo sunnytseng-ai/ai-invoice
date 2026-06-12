@@ -3,145 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 拍拍中獎王 | 結構化門戶</title>
+    <title>AI 拍拍中獎王 | 智慧門戶</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .loading-spinner { 
-            border: 4px solid rgba(255, 255, 255, 0.05); 
-            border-radius: 50%; 
-            border-top: 4px solid #10b981; 
-            width: 45px; 
-            height: 45px; 
-            animation: spin 0.8s linear infinite; 
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            border-top: 4px solid #10b981;
+            width: 45px;
+            height: 45px;
+            animation: spin 0.8s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #appLayout { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-fadeIn { animation: fadeIn 0.35s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
 
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold text-emerald-500 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
+        <p class="text-xs font-semibold text-slate-500 tracking-widest">SYSTEM INITIALIZING</p>
     </div>
 
-    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto animate-fadeIn">
-        <div class="space-y-6">
-            <header class="text-center pt-4 flex items-center justify-between border-b border-slate-900 pb-4">
-                <div class="text-left">
-                    <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">AI 拍拍中獎王</h1>
-                    <p id="envBadge" class="text-[10px] text-slate-500 font-bold tracking-wide mt-0.5">環境校準中...</p>
-                </div>
-                <span class="text-xs font-bold bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl shadow text-emerald-400">PORTAL v2.0</span>
-            </header>
-
-            <div class="space-y-4">
-                <div onclick="window.location.href='/ai-invoice/manual.html'" class="bg-slate-900/60 border border-slate-900 hover:border-purple-500/40 rounded-3xl p-5 shadow-2xl cursor-pointer transition duration-300 group">
-                    <div class="flex items-center justify-between">
-                        <div class="space-y-1">
-                            <h3 class="text-lg font-black text-slate-100 group-hover:text-purple-400 transition">✍️ 網頁手動補登</h3>
-                            <p class="text-xs text-slate-400">免翻拍發票，手機直接輸入字軌與號碼對獎</p>
-                        </div>
-                        <span class="text-xl group-hover:translate-x-1 transition duration-200">➔</span>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900/30 border border-slate-900/60 rounded-3xl p-5 shadow-inner opacity-70">
-                    <div class="space-y-1">
-                        <h3 class="text-base font-bold text-slate-400">📸 拍照與 QR 掃描對獎</h3>
-                        <p class="text-xs text-slate-500">請直接於 LINE 聊天室內傳送發票照片，AI 將自動啟動辨識</p>
-                    </div>
-                </div>
+    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
+        
+        <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
+            <div class="text-left">
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">AI 拍拍中獎王</h1>
+                <div id="envBadge" class="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wide">環境校準中...</div>
             </div>
-        </div>
+            <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-full shadow-inner">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-[10px] font-mono font-black text-emerald-400 tracking-widest">LIVE</span>
+            </div>
+        </header>
 
-        <footer class="text-center py-4 border-t border-slate-900 mt-6 text-xs text-slate-600 font-medium tracking-wide">
-            © 2026 AI 拍拍中獎王 | 數據整合控制中台
+        <main class="w-full my-auto space-y-4 animate-fadeIn">
+            <div class="space-y-4 py-2">
+                <label class="relative flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
+                    <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <span class="text-4xl group-hover:scale-105 transition duration-200">📸</span>
+                        <div class="text-left">
+                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
+                            <span class="block text-xs text-slate-500 mt-0.5">支援多張相簿選取 ➔ 呼叫 AI 智慧辨識</span>
+                        </div>
+                    </div>
+                </label>
+
+                <button id="btnStartQrScan" class="w-full flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-4xl group-hover:scale-105 transition duration-200">⚡</span>
+                        <div>
+                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝電子 QRCode 發票</span>
+                            <span class="block text-xs text-slate-500 mt-0.5">調用 LINE 原生高感度鏡頭 ➔ 嗶一聲秒對</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 當前對獎報告明細</span>
+                    <span id="resultCount" class="text-xs font-mono font-bold text-slate-500">0 張發票</span>
+                </div>
+                <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+            </div>
+        </main>
+
+        <footer class="text-center py-4 border-t border-slate-900 text-xs text-slate-600 font-bold tracking-wide">
+            AI INVOICE EXPERT SYSTEM v2.0
         </footer>
+    </div>
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
+        <div class="loading-spinner"></div>
+        <p id="loadingText" class="text-sm font-bold text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
+        // 🚀 【WBS 2.0 正式上線】剛性移除 -test，全面對齊背景 24H 生產環境
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
         let REAL_DISPLAY_NAME = "PC網頁端使用者";
+        let processedCount = 0;
+        let isLineEnv = false;
 
         document.addEventListener("DOMContentLoaded", () => {
-            const fallbackUnlocker = setTimeout(() => {
-                document.getElementById('envBadge').innerText = `📱 LINE 快速相容入口`;
-                unlockUI();
-            }, 1500);
+            // =========================================================================
+            // 🔀 【WBS 1.0 核心防禦線】中央路由調度總機（0毫秒剛性攔截跳轉）
+            // =========================================================================
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasManualIntent = urlParams.get('page') === 'manual' || 
+                                    window.location.hash.includes('page=manual') || 
+                                    window.location.search.includes('page=manual');
+
+            if (hasManualIntent) {
+                console.log("🔀 [第一線攔截] 偵測到手動輸入意圖，啟動中央路由，自動重導向至 manual.html");
+                window.location.href = "./manual.html" + window.location.search;
+                return; // 🎯 剛性熔斷：拒絕渲染任何 index 頁面
+            }
+
+            // 3秒超時熔斷安全開門
+            setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
 
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
-                clearTimeout(fallbackUnlocker);
-                document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯門戶 (ID: ${REAL_USER_ID})`;
+                isLineEnv = false;
+                document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
             
             liff.init({ liffId: LIFF_ID }).then(() => {
+                isLineEnv = true;
+                
+                // 🎯 [第二線攔截] 穿透 LINE 容器在登入跳轉時可能產生的快取污染
+                const context = liff.getContext();
+                if (context && context.url && context.url.includes('page=manual')) {
+                    console.log("🔀 [第二線攔截] 穿透 LINE 內層 Context 成功，自動補償跳轉至 manual.html");
+                    window.location.href = "./manual.html" + window.location.search;
+                    return;
+                }
+
                 if (!liff.isLoggedIn()) { 
-                    clearTimeout(fallbackUnlocker);
                     liff.login(); 
                 } else {
                     liff.getProfile().then(profile => { 
-                        clearTimeout(fallbackUnlocker);
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = `📱 LINE 行動對獎門戶 (${REAL_DISPLAY_NAME})`;
-                        unlockUI(); 
+                        document.getElementById('envBadge').innerText = `📱 LINE 行動同步模式 (${REAL_DISPLAY_NAME})`;
+                        unlockUI();
                     }).catch(err => { console.error(err); unlockUI(); });
                 }
             }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
         });
 
         function unlockUI() {
+            document.getElementById('imageCapture').disabled = false;
             document.getElementById('splashScreen').style.display = 'none';
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        async function fireQrCodeResult(decodedText) {
-            const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
-            const matchResult = decodedText.match(validQrRegex);
-            
-            if (!matchResult) {
-                alert("⚠️ 發票格式錯誤，請重新掃描！");
+        function toggleLoading(show, text = "正在精準傳輸數據...") {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').innerText = text;
+            overlay.classList.toggle('hidden', !show);
+        }
+
+        // ⚡ 電子發票 QRCode 掃描流
+        document.getElementById('btnStartQrScan').addEventListener('click', async () => {
+            if (!isLineEnv) {
+                const mockData = prompt("【2.0 測試提示】請貼上電子發票 QRCode 的真實解碼字串：");
+                if (mockData) { fireQrCodeResult(mockData); }
                 return;
             }
-            
-            const tracking = matchResult[1].toUpperCase();
-            const serial = matchResult[3];
-            const rawPeriod = matchResult[4];
-            
-            let period = rawPeriod;
-            if (parseInt(rawPeriod.substring(3, 5), 10) % 2 === 0) {
-                period = rawPeriod.substring(0, 3) + String(parseInt(rawPeriod.substring(3, 5), 10) - 1).padStart(2, '0');
+            if (liff.scanCodeV2) {
+                liff.scanCodeV2().then(async (result) => {
+                    if (result.value) { fireQrCodeResult(result.value); }
+                }).catch(err => console.error(err));
             }
-            
-            const payload = {
-                type: "QR_CODE",
-                tracking: tracking,
-                serial: serial,
-                period: period
-            };
-            
+        });
+
+        async function fireQrCodeResult(decodedText) {
+            const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
+            const matchResult = decodedText.match(validQrRegex);
+            if (!matchResult) {
+                alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
+                return;
+            }
+            const sanitizedQrText = decodedText.substring(matchResult.index).trim();
+            toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
-                await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const res = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    // 🎯【源頭整治】：精準扒掉最外層 body 嵌套，將 events 直接拋出
                     body: JSON.stringify({
-                        events: [{
-                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
-                            message: { text: JSON.stringify(payload) } 
-                        }]
+                        events: [{ 
+                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
+                            message: { text: "QR_DECODED:" + sanitizedQrText } 
+                        }] 
                     })
                 });
-                alert("✅ 發票已送出，正在對獎！");
-            } catch (err) { console.error(err); }
+                if (res.ok) {
+                    let bulkResults = await res.json(); 
+                    if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                    renderResults(bulkResults);
+                }
+            } catch (err) { console.error(err); } finally { toggleLoading(false); }
+        }
+
+        // 📸 傳統發票圖片批量解包流
+        document.getElementById('imageCapture').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files); if (files.length === 0) return;
+            processedCount = 0; document.getElementById('resultBox').innerHTML = "";
+            toggleLoading(true, `正在啟動 2.0 影像優化引水管道...`);
+            for (let i = 0; i < files.length; i++) {
+                await new Promise((res) => {
+                    const r = new FileReader(); r.onload = (ev) => {
+                        const img = new Image(); img.onload = async () => {
+                            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                            let w = img.width, h = img.height; if(w > h) { if(w>1024){ h*=1024/w; w=1024; } } else { if(h>1024){ w*=1024/h; h=1024; } }
+                            canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
+                            const b64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+                            toggleLoading(true, `正在傳輸第 (${i+1}/${files.length}) 張發票至雲端大腦...`);
+                            try {
+                                const response = await fetch(N8N_WEBHOOK_URL, {
+                                    method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                                    body: JSON.stringify({ body: { events: [{ source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, message: { text: "IMAGE_BASE64:" + b64 } }] } })
+                                });
+                                if (response.ok) { let rJson = await response.json(); if (!Array.isArray(rJson)) rJson = [rJson]; renderResults(rJson); }
+                            } catch (err) { console.error(err); }
+                            res();
+                        }; img.src = ev.target.result;
+                    }; r.readAsDataURL(files[i]);
+                });
+            }
+            toggleLoading(false); e.target.value = "";
+        });
+
+        // 🎨 卡片渲染引擎 (WBS 1.0 異常熔斷補強版)
+        function renderResults(items) {
+            const panel = document.getElementById('resultPanel'); 
+            const box = document.getElementById('resultBox');
+            panel.classList.remove('hidden');
+            
+            items.forEach(rawItem => {
+                let data = rawItem.json ? rawItem.json : rawItem; 
+                const card = document.createElement('div');
+                
+                // 🎯 核心修正 (1)：只有在對獎成功且「不是異常熔斷」的狀況下，發票張數才累加
+                if (data.status === "success" && data.狀態 !== "not_invoice") {
+                    processedCount++;
+                    document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
+                } else if (processedCount === 0) {
+                    // 🎯 修正：若累計張數為 0，則維持顯示 0 張
+                    document.getElementById('resultCount').innerText = `0 張發票`;
+                }
+
+                // 📅 雙月標籤翻譯
+                let displayPeriod = "期別格式錯誤";
+                if (data.發票期別 && data.發票期別.length === 5) {
+                    const year = data.發票期別.substring(0, 3); 
+                    const endMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    displayPeriod = `${year}年${String(endMonth - 1).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                }
+
+                let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
+                let rightSideHtml = "";
+
+                // 🎯 核心修正 (2)：精準對齊大腦輸出，拍到貓或異常時顯示「不是台灣發票」
+                if (data.status === "error" || data.狀態 === "not_invoice") {
+                    statusColorClass = "border-rose-950/60 text-rose-400 bg-rose-950/10";
+                    rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-rose-950 px-2.5 py-0.5 rounded-full font-black text-rose-400">❌ 失敗</span></div>`;
+                    
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-rose-400 text-base tracking-wide">🐱 不是台灣發票</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-1">系統已自動隔離落盤通道</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
+                } else {
+                    // 以下為正常中獎狀態管理
+                    if (data.狀態 === "中獎") {
+                        statusColorClass = "border-amber-500/40 text-amber-400 bg-gradient-to-r from-amber-950/20 to-transparent";
+                        rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-full font-black text-amber-300">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 text-amber-400 tracking-wide">+${data.金額} 元</div></div>`;
+                    } else if (data.狀態 === "未中獎") {
+                        statusColorClass = "border-slate-900 text-slate-400/70 bg-slate-900/20";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded-full font-bold text-slate-600">😮 ${data.狀態}</span></div>`;
+                    } else if (data.狀態 === "尚未開獎") {
+                        statusColorClass = "border-sky-500/30 text-sky-400 bg-gradient-to-r from-sky-950/10 to-transparent";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full font-black text-sky-300">⏳ ${data.狀態}</span></div>`;
+                    }
+
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-slate-100 text-base tracking-widest font-mono">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
+                            <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
+                }
+                box.insertBefore(card, box.firstChild);
+            });
         }
     </script>
 </body>
