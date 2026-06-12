@@ -8,9 +8,9 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.05);
+            border: 4px solid rgba(26, 46, 74, 0.1);
             border-radius: 50%;
-            border-top: 4px solid #10b981;
+            border-top: 4px solid #1A2E4A;
             width: 45px;
             height: 45px;
             animation: spin 0.8s linear infinite;
@@ -21,57 +21,50 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
+<body class="min-h-screen p-4 flex flex-col justify-between select-none" style="background-color:#C8DDF0; color:#1A2E4A;">
 
-    <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+    <div id="modalBackdrop" class="fixed inset-0 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none" style="background:rgba(26,46,74,0.4);"></div>
     
-    <div id="customAlert" class="fixed inset-x-4 top-1/3 max-w-sm mx-auto z-50 bg-slate-900/95 border border-slate-800 p-6 rounded-3xl shadow-2xl transition-all duration-300 transform scale-90 opacity-0 pointer-events-none text-center space-y-4">
+    <div id="customAlert" class="fixed inset-x-4 top-1/3 max-w-sm mx-auto z-50 border p-6 rounded-3xl shadow-2xl transition-all duration-300 transform scale-90 opacity-0 pointer-events-none text-center space-y-4" style="background:#EBF4FB; border-color:#B0CDE0;">
         <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl" id="alertIconBg">
             <span id="alertIcon">⚠️</span>
         </div>
         <div class="space-y-1">
-            <h3 id="alertTitle" class="text-base font-black tracking-wider text-slate-200">系統提示</h3>
-            <p id="alertMessage" class="text-xs text-slate-400 leading-relaxed whitespace-pre-line"></p>
+            <h3 id="alertTitle" class="text-base font-black tracking-wider" style="color:#1A2E4A;">系統提示</h3>
+            <p id="alertMessage" class="text-xs leading-relaxed whitespace-pre-line" style="color:#3A5A7A;"></p>
         </div>
-        <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-emerald-500/20 shadow">
+        <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow" style="background:#1A2E4A; color:#fff; border:none;">
             確認
         </button>
     </div>
 
-    <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold text-slate-500 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
+        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">系統準備中</p>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
         
-        <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
-            <div class="text-center">
-                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">AI 拍拍中獎王</h1>
-                <div id="envBadge" class="text-[10px] text-slate-500 font-bold mt-0.5 tracking-wide">環境校準中...</div>
-            </div>
-            <div class="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-800 px-2.5 py-1 rounded-full shadow-inner">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-[10px] font-mono font-black text-emerald-400 tracking-widest">LIVE</span>
-            </div>
+                <header class="text-center pt-2 pb-3" style="border-bottom:1px solid #B0CDE0;">
+            <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">AI 拍拍中獎王</h1>
         </header>
 
         <main class="w-full my-auto space-y-4 animate-fadeIn">
             <div class="space-y-4 py-2">
-                <label class="relative flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-xl">
+                <label class="relative flex items-center p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-md" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                     <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
                     <div class="flex items-center space-x-4 pointer-events-none">
                         <span class="text-4xl group-hover:scale-105 transition duration-200">📸</span>
                         <div class="text-left">
-                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">拍攝 / 上傳傳統長發票</span>
+                            <span class="block font-black text-lg transition duration-200" style="color:#1A2E4A;">拍攝 / 上傳傳統長發票</span>
                         </div>
                     </div>
                 </label>
 
-                <button id="btnStartQrScan" class="w-full flex items-center bg-gradient-to-br from-slate-900 to-slate-900/40 border border-slate-800/80 hover:border-emerald-500/30 p-5 rounded-2xl transition duration-200 text-left group shadow-xl">
+                <button id="btnStartQrScan" class="w-full flex items-center p-5 rounded-2xl transition duration-200 text-left group shadow-md" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                     <div class="flex items-center space-x-4">
                         <span class="group-hover:scale-105 transition duration-200 flex-shrink-0">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-slate-200 group-hover:text-emerald-400 transition duration-200">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="transition duration-200" style="color:#1A2E4A;">
                                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
                                 <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
                                 <line x1="14" y1="14" x2="14" y2="14.01"/><line x1="17" y1="14" x2="17" y2="14.01"/><line x1="20" y1="14" x2="20" y2="14.01"/>
@@ -80,29 +73,29 @@
                             </svg>
                         </span>
                         <div>
-                            <span class="block font-black text-lg text-slate-200 group-hover:text-emerald-400 transition duration-200">掃描電子發票 QRCode </span>
+                            <span class="block font-black text-lg transition duration-200" style="color:#1A2E4A;">掃描電子發票 QRCode </span>
                         </div>
                     </div>
                 </button>
             </div>
 
-            <div id="resultPanel" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-4 space-y-3 hidden shadow-2xl">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-xs font-black tracking-widest text-emerald-400">⚡ 當前對獎報告明細</span>
-                    <span id="resultCount" class="text-xs font-mono font-bold text-slate-500">0 張發票</span>
+            <div id="resultPanel" class="rounded-2xl p-4 space-y-3 hidden shadow-xl" style="background:#EBF4FB; border:1px solid #B0CDE0;">
+                <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
+                    <span class="text-xs font-black tracking-widest" style="color:#1A2E4A;">當前對獎報告明細</span>
+                    <span id="resultCount" class="text-xs font-mono font-bold" style="color:#3A5A7A;">0 張發票</span>
                 </div>
                 <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
             </div>
         </main>
 
-        <footer class="text-center py-4 border-t border-slate-900 text-xs text-slate-600 font-bold tracking-wide">
+        <footer class="text-center py-4 text-xs font-bold tracking-wide" style="border-top:1px solid #B0CDE0; color:#3A5A7A;">
             AI 工具煉成記 • Sunny Tseng
         </footer>
     </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-4 hidden" style="background:rgba(200,221,240,0.95);">
         <div class="loading-spinner"></div>
-        <p id="loadingText" class="text-sm font-bold text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
+        <p id="loadingText" class="text-sm font-bold tracking-widest animate-pulse" style="color:#1A2E4A;">正在精準傳輸數據...</p>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -131,23 +124,23 @@
             alertMessage.innerText = msg;
 
             // 移除舊樣式
-            alertBox.classList.remove('border-rose-500/30', 'border-emerald-500/30', 'border-amber-500/30');
+            alertBox.style.borderColor = '#B0CDE0';
             alertIconBg.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl";
             confirmBtn.className = "w-full font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow border";
 
             // 依據類型動態渲染配色與按鈕
             if (type === 'error') {
-                alertBox.classList.add('border-rose-500/30');
-                alertIconBg.classList.add('bg-rose-950/30', 'text-rose-400');
-                confirmBtn.classList.add('bg-rose-600', 'hover:bg-rose-500', 'text-slate-950', 'border-rose-500/20');
+                alertBox.style.borderColor = '#fca5a5';
+                alertIconBg.style.cssText = 'background:#FEE2E2;'; alertIconBg.classList.add('text-rose-500');
+                confirmBtn.style.cssText = 'background:#DC2626; color:#fff; border:none;';
             } else if (type === 'success') {
-                alertBox.classList.add('border-emerald-500/30');
-                alertIconBg.classList.add('bg-emerald-950/30', 'text-emerald-400');
-                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
+                alertBox.style.borderColor = '#6ee7b7';
+                alertIconBg.style.cssText = 'background:#D1FAE5;'; alertIconBg.classList.add('text-emerald-600');
+                confirmBtn.style.cssText = 'background:#1A2E4A; color:#fff; border:none;';
             } else {
-                alertBox.classList.add('border-amber-500/30');
-                alertIconBg.classList.add('bg-amber-950/30', 'text-amber-400');
-                confirmBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-slate-950', 'border-emerald-500/20');
+                alertBox.style.borderColor = '#fcd34d';
+                alertIconBg.style.cssText = 'background:#FEF3C7;'; alertIconBg.classList.add('text-amber-600');
+                confirmBtn.style.cssText = 'background:#1A2E4A; color:#fff; border:none;';
             }
 
             // 動態展示動畫
@@ -196,7 +189,6 @@
 
             if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
                 isLineEnv = false;
-                document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
@@ -216,7 +208,6 @@
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = `📱 LINE 行動同步模式 (${REAL_DISPLAY_NAME})`;
                         unlockUI();
                     }).catch(err => { console.error(err); unlockUI(); });
                 }
@@ -370,39 +361,39 @@
                     displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
                 }
 
-                let statusColorClass = "border-slate-800 text-slate-400 bg-slate-900/30"; 
+                let statusColorClass = ""; let statusStyle = "border-color:#B0CDE0; background:#EBF4FB;"; 
                 let rightSideHtml = "";
 
                 if (data.status === "error" || data.狀態 === "not_invoice") {
-                    statusColorClass = "border-rose-950/60 text-rose-400 bg-rose-950/10";
-                    rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-rose-950 px-2.5 py-0.5 rounded-full font-black text-rose-400">❌ 失敗</span></div>`;
+                    statusColorClass = ""; statusStyle = "border-color:#fca5a5; background:#FEF2F2;";
+                    rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2.5 py-0.5 rounded-full font-black" style="background:#FEE2E2; color:#DC2626;">❌ 失敗</span></div>`;
                     
-                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.className = "p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow"; card.style.cssText = statusStyle;
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5 text-left">
-                            <span class="font-black block text-rose-400 text-base tracking-wide">🐱 不是台灣發票</span>
-                            <span class="text-slate-500 font-mono text-[10px] block mt-1">系統已自動隔離落盤通道</span>
+                            <span class="font-black block text-base tracking-wide" style="color:#DC2626;">🐱 不是台灣發票</span>
+                            <span class="font-mono text-[10px] block mt-1" style="color:#64748b;">系統已自動隔離落盤通道</span>
                         </div>
                         ${rightSideHtml}
                     `;
                 } else {
                     if (data.狀態 === "中獎") {
-                        statusColorClass = "border-amber-500/40 text-amber-400 bg-gradient-to-r from-amber-950/20 to-transparent";
-                        rightSideHtml = `<div class="text-right"><span class="text-[11px] bg-amber-500/20 px-2 py-0.5 rounded-full font-black text-amber-300">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 text-amber-400 tracking-wide">+${data.金額} 元</div></div>`;
+                        statusColorClass = ""; statusStyle = "border-color:#fcd34d; background:#FFFBEB;";
+                        rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2 py-0.5 rounded-full font-black" style="background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 tracking-wide" style="color:#92400e;">+${data.金額} 元</div></div>`;
                     } else if (data.狀態 === "未中獎") {
-                        statusColorClass = "border-slate-900 text-slate-400/70 bg-slate-900/20";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-slate-950 px-2 py-0.5 rounded-full font-bold text-slate-600">😮 ${data.狀態}</span></div>`;
+                        statusColorClass = ""; statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
                     } else if (data.狀態 === "尚未開獎") {
-                        statusColorClass = "border-sky-500/30 text-sky-400 bg-gradient-to-r from-sky-950/10 to-transparent";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded-full font-black text-sky-300">⏳ ${data.狀態}</span></div>`;
+                        statusColorClass = ""; statusStyle = "border-color:#93c5fd; background:#EFF6FF;";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-black" style="background:#DBEAFE; color:#1e40af;">⏳ ${data.狀態}</span></div>`;
                     }
 
-                    card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow-lg ${statusColorClass}`;
+                    card.className = "p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow"; card.style.cssText = statusStyle;
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5 text-left">
-                            <span class="font-black block text-slate-100 text-base tracking-widest font-mono">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
-                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '掃描輸入'} | 對獎完成</span>
+                            <span class="font-black block text-base tracking-widest font-mono" style="color:#1A2E4A;">${data.發票字軌與號碼 || '未知號碼'}</span>
+                            <span class="block font-bold mt-0.5" style="color:#3A5A7A;">${displayPeriod}</span>
+                            <span class="font-mono text-[10px] block mt-0.5" style="color:#64748b;">${data.發票輸入方式 || '掃描輸入'} | 對獎完成</span>
                         </div>
                         ${rightSideHtml}
                     `;
