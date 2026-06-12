@@ -27,7 +27,7 @@
 
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">SYSTEM INITIALIZING</p>
+        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">系統準備中</p>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto">
@@ -35,16 +35,7 @@
         <!-- 置頂輸入區塊 -->
         <div class="sticky top-0 z-10 pb-3" style="background-color:#C8DDF0;">
             <header class="text-center pt-2 pb-3" style="border-bottom:1px solid #B0CDE0;">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1 text-center">
-                        <h1 class="text-xl font-black tracking-wider" style="color:#1A2E4A;">手動輸入發票</h1>
-                        <p id="envBadge" class="text-[10px] font-bold tracking-wide mt-0.5" style="color:#3A5A7A;">環境校準中...</p>
-                    </div>
-                    <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full shadow-inner" style="background:rgba(26,46,74,0.08); border:1px solid #B0CDE0;">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-[10px] font-mono font-black tracking-widest" style="color:#ffffff;">LIVE</span>
-                    </div>
-                </div>
+                <h1 class="text-xl font-black tracking-wider" style="color:#1A2E4A;">手動輸入發票</h1>
             </header>
 
             <div class="rounded-3xl shadow-xl space-y-3 mt-3" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
@@ -126,13 +117,11 @@
             // 🧠 核心修正點 (2)：建立「防禦式超時熔斷晶片」。如果 1.5 秒內 LINE 引擎沒回應，直接強制解鎖介面！
             const fallbackUnlocker = setTimeout(() => {
                 console.warn("🛡️ LINE In-App 啟動異常，啟動防禦熔斷強制解鎖畫面");
-                document.getElementById('envBadge').innerText = `📱 LINE 快速相容補登模式`;
                 unlockUI();
             }, 1500);
 
             if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
                 clearTimeout(fallbackUnlocker);
-                document.getElementById('envBadge').innerText = `🖥️ PC 跨端補除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
@@ -147,7 +136,6 @@
                         clearTimeout(fallbackUnlocker); // 🎯 順利拿到身份，解除熔斷計時器
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = `📱 LINE 行動補登模式 (${REAL_DISPLAY_NAME})`;
                         unlockUI(); 
                     }).catch(err => { console.error(err); unlockUI(); });
                 }
