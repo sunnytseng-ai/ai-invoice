@@ -113,21 +113,31 @@
         let invoiceList = []; 
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 🧠 初始化動態滾動時間窗口：當期 + 前兩期，永遠只留 3 期
+            // 🧠 核心修正點 (1)：100% 優先推算時間，完全不等待 LIFF，確保第一時間渲染骨架
             initDynamicPeriodOptions();
 
-            setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
+            // 🧠 核心修正點 (2)：建立「防禦式超時熔斷晶片」。如果 1.5 秒內 LINE 引擎沒回應，直接強制解鎖介面！
+            const fallbackUnlocker = setTimeout(() => {
+                console.warn("🛡️ LINE In-App 啟動異常，啟動防禦熔斷強制解鎖畫面");
+                document.getElementById('envBadge').innerText = `📱 LINE 快速相容補登模式`;
+                unlockUI();
+            }, 1500);
 
             if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                clearTimeout(fallbackUnlocker);
                 document.getElementById('envBadge').innerText = `🖥️ PC 跨端補除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
             
             liff.init({ liffId: LIFF_ID }).then(() => {
-                if (!liff.isLoggedIn()) { liff.login(); } 
+                if (!liff.isLoggedIn()) { 
+                    clearTimeout(fallbackUnlocker);
+                    liff.login(); 
+                } 
                 else {
                     liff.getProfile().then(profile => { 
+                        clearTimeout(fallbackUnlocker); // 🎯 順利拿到身份，解除熔斷計時器
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
                         document.getElementById('envBadge').innerText = `📱 LINE 行動補登模式 (${REAL_DISPLAY_NAME})`;
@@ -142,7 +152,7 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 🧠 台灣電子發票動態 3 期滾動推算引擎
+        // 🧠 台灣電子發票動態 3 期滾動推算引擎 (原汁原味全量保留)
         function initDynamicPeriodOptions() {
             const selectEl = document.getElementById('inputPeriod');
             selectEl.innerHTML = ""; 
@@ -181,7 +191,7 @@
             this.value = this.value.replace(/[^0-9]/g, '');
         });
 
-        // ➕ 完美復原「增加下一組」到 manifest 記憶體清單
+        // ➕ 完美復原「增加下一組」到 manifest 記憶體清單 (原汁原味全量保留)
         document.getElementById('btnAddInvoice').addEventListener('click', () => {
             const trackInput = document.getElementById('inputTrack');
             const numInput = document.getElementById('inputNumber');
@@ -194,7 +204,6 @@
             if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
             if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
 
-            // 🧠 前端完全控制期別原則：如果是雙數月，剛性在前端收束為單數首月 (例如 11502 ➔ 11501, 11512 ➔ 11511)
             let finalPeriod = rawPeriod;
             if (rawPeriod.length === 5) {
                 const year = rawPeriod.substring(0, 3);
@@ -255,14 +264,13 @@
             renderManifestList();
         };
 
-        // 🔥 點我一口氣全部對獎！
+        // 🔥 點我一口氣全部對獎！ (原汁原味全量保留)
         document.getElementById('btnSubmitAll').addEventListener('click', async () => {
             if (invoiceList.length === 0) return;
             
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('hidden');
 
-            // 🧼 規格化包裝：MANUAL_INPUT: 前綴 + 乾淨無嵌套的陣列 JSON 噴射
             const standardizedPayload = `MANUAL_INPUT:${JSON.stringify(invoiceList)}`;
 
             try {
@@ -272,7 +280,6 @@
                     body: JSON.stringify({
                         events: [{
                             source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
-                            // 🎯 拔除舊外殼，一律作為單層純淨 text 射出
                             message: { text: standardizedPayload } 
                         }]
                     })
