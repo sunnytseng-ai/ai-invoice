@@ -27,7 +27,7 @@
 
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">SYSTEM INITIALIZING</p>
+        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">系統準備中</p>
     </div>
 
     <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto">
@@ -46,7 +46,7 @@
                 </div>
             </header>
 
-            <div class="rounded-3xl shadow-xl space-y-3 mt-3" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
+            <div class="rounded-3xl shadow-xl space-y-3 mt-1" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
                 <!-- 發票期別：label 與 select 同列，label 與字軌同寬 (col-span-4 = 33.33%) -->
                 <div class="grid grid-cols-12 gap-2 items-center">
                     <label class="col-span-4 text-sm font-black tracking-widest text-center" style="color:#3A5A7A;">發票期別</label>
@@ -90,7 +90,7 @@
                 <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
                     <span class="text-sm font-black tracking-widest text-emerald-600">即時對獎報告明細</span>
                 </div>
-                <div id="resultBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                <div id="resultBox" class="space-y-2 overflow-y-auto pr-1" style="max-height:12rem;"></div>
             </div>
         </div>
 
@@ -396,6 +396,7 @@
             document.getElementById('collapseArrow').innerText = '▼';
             document.getElementById('collapseLabel').innerText = '展開';
             document.getElementById('manifestBox').style.maxHeight = '60vh';
+            document.getElementById('resultBox').style.maxHeight = '60vh';
         }
 
         function expandInput() {
@@ -406,6 +407,7 @@
             if (arrow) arrow.innerText = '▲';
             if (label) label.innerText = '收起';
             document.getElementById('manifestBox').style.maxHeight = '12rem';
+            document.getElementById('resultBox').style.maxHeight = '12rem';
         }
 
         document.getElementById('btnCollapseInput').addEventListener('click', () => {
