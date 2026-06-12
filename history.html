@@ -43,21 +43,14 @@
     <!-- 系統初始化擋牆屏障 -->
     <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">正在精準同步雲端帳簿...</p>
+        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">系統準備中</p>
     </div>
 
     <!-- 核心應用程式配置 -->
     <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto">
         
-        <header class="text-center pt-2 flex items-center justify-between pb-3" style="border-bottom:1px solid #B0CDE0;">
-            <div class="text-center">
-                <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">近 3 期歷史對獎紀錄</h1>
-                <div id="envBadge" class="text-[10px] font-bold mt-0.5 tracking-wide" style="color:#3A5A7A;">環境校準中...</div>
-            </div>
-            <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full shadow-inner" style="background:rgba(26,46,74,0.08); border:1px solid #B0CDE0;">
-                <span class="w-2 h-2 rounded-full animate-pulse" style="background:#1A2E4A;"></span>
-                <span class="text-[10px] font-mono font-black tracking-widest" style="color:#1A2E4A;">HISTORY</span>
-            </div>
+        <header class="text-center pt-2 pb-3" style="border-bottom:1px solid #B0CDE0;">
+            <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">近 3 期對獎紀錄</h1>
         </header>
 
         <!-- 數據概覽總結卡片 (sticky) -->
@@ -153,7 +146,6 @@
             }, 1500);
 
             if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
-                document.getElementById('envBadge').innerText = "🖥️ PC 歷史除錯模式 (ID: " + REAL_USER_ID + ")";
                 fetchHistoryData();
                 return;
             }
@@ -165,7 +157,6 @@
                     liff.getProfile().then(profile => { 
                         REAL_USER_ID = profile.userId; 
                         REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = "📱 LINE 歷史同步模式 (" + REAL_DISPLAY_NAME + ")";
                         fetchHistoryData();
                     }).catch(err => { console.error(err); unlockUI(); });
                 }
