@@ -51,7 +51,7 @@
         
         <header class="text-center pt-2 flex items-center justify-between pb-3" style="border-bottom:1px solid #B0CDE0;">
             <div class="text-center">
-                <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">歷史對獎紀錄</h1>
+                <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">近 3 期歷史對獎紀錄</h1>
                 <div id="envBadge" class="text-[10px] font-bold mt-0.5 tracking-wide" style="color:#3A5A7A;">環境校準中...</div>
             </div>
             <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full shadow-inner" style="background:rgba(26,46,74,0.08); border:1px solid #B0CDE0;">
@@ -287,13 +287,16 @@
                 let groupStatusStyle = "";
                 if (hasPending) {
                     groupStatusText = "⏳ 尚未開獎";
-                    groupStatusClass = "font-black px-2 py-0.5 rounded-full border" style_pending=true;
+                    groupStatusClass = "";
+                    groupStatusStyle = "background:#DBEAFE; color:#1e40af; border-color:#93c5fd;";
                 } else if (groupBonus > 0) {
                     groupStatusText = "🎉 中獎 $" + groupBonus;
-                    groupStatusClass = "font-black px-2 py-0.5 rounded-full border" style_win=true;
+                    groupStatusClass = "";
+                    groupStatusStyle = "background:#FEF3C7; color:#92400e; border-color:#fcd34d;";
                 } else {
                     groupStatusText = "😮 未中獎";
-                    groupStatusClass = "font-black px-2 py-0.5 rounded-full border" style_lose=true;
+                    groupStatusClass = "";
+                    groupStatusStyle = "background:#EBF4FB; color:#64748b; border-color:#B0CDE0;";
                 }
 
                 // 渲染群組標頭
