@@ -147,7 +147,10 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
+            setTimeout(() => { 
+                const splash = document.getElementById('splashScreen');
+                if (splash && splash.style.display !== 'none') unlockUI(); 
+            }, 1500);
 
             if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
                 document.getElementById('envBadge').innerText = "🖥️ PC 歷史除錯模式 (ID: " + REAL_USER_ID + ")";
@@ -170,8 +173,10 @@
         });
 
         function unlockUI() {
-            document.getElementById('splashScreen').style.display = 'none';
-            document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
+            const splash = document.getElementById('splashScreen');
+            const app = document.getElementById('appLayout');
+            if (splash) splash.style.display = 'none';
+            if (app) { app.style.cssText = 'display: flex !important; flex-direction: column; min-height: 100vh; width: 100%; max-width: 28rem; margin: 0 auto;'; }
         }
 
         // =========================================================================
