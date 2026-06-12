@@ -343,7 +343,17 @@
             panel.classList.remove('hidden');
             box.innerHTML = "";
 
-            items.forEach(rawItem => {
+            // 排序：中獎優先（金額大到小）→ 未中獎/尚未開獎 → 期別新到舊
+            const sorted = [...items].sort((a, b) => {
+                const da = a.json ? a.json : a;
+                const db = b.json ? b.json : b;
+                const aAmt = da.狀態 === '中獎' ? (parseInt(da.金額, 10) || 0) : -1;
+                const bAmt = db.狀態 === '中獎' ? (parseInt(db.金額, 10) || 0) : -1;
+                if (bAmt !== aAmt) return bAmt - aAmt;
+                return parseInt(db.發票期別 || 0, 10) - parseInt(da.發票期別 || 0, 10);
+            });
+
+            sorted.forEach(rawItem => {
                 const data = rawItem.json ? rawItem.json : rawItem;
                 const card = document.createElement('div');
                 
@@ -359,18 +369,18 @@
 
                 if (data.status === "error" || data.狀態 === "not_invoice") {
                     statusStyle = "border-color:#fca5a5; background:#FEF2F2; color:#991b1b;";
-                    rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2.5 py-0.5 rounded-full font-black" style="background:#fee2e2; color:#dc2626;">❌ 失敗</span></div>`;
+                    rightSideHtml = `<div class="text-right"><span class="px-2.5 py-0.5 rounded-full font-black" style="font-size:14px; background:#fee2e2; color:#dc2626;">❌ 失敗</span></div>`;
                     card.innerHTML = `<div class="text-xs text-left"><span class="font-black block text-base" style="color:#dc2626;">🐱 不是台灣發票</span></div>${rightSideHtml}`;
                 } else {
                     if (data.狀態 === "中獎") {
                         statusStyle = "border-color:#fcd34d; background:#FFFBEB;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2 py-0.5 rounded-full font-black" style="background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="text-base font-black mt-1" style="color:#92400e;">+${data.金額} 元</div></div>`;
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-black" style="font-size:14px; background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="font-black mt-1" style="font-size:14px; color:#92400e;">+${data.金額} 元</div></div>`;
                     } else if (data.狀態 === "未中獎") {
                         statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-bold" style="font-size:14px; background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
                     } else if (data.狀態 === "尚未開獎") {
                         statusStyle = "border-color:#93c5fd; background:#EFF6FF;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-black" style="background:#DBEAFE; color:#1e40af;">⏳ ${data.狀態}</span></div>`;
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-black" style="font-size:14px; background:#DBEAFE; color:#1e40af;">⏳ ${data.狀態}</span></div>`;
                     }
 
                     card.innerHTML = `
@@ -383,7 +393,7 @@
                 }
                 card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow`;
                 card.style.cssText = statusStyle;
-                box.insertBefore(card, box.firstChild);
+                box.appendChild(card);
             });
         }
         // 收合輸入區塊
