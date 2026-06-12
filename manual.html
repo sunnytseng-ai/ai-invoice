@@ -6,7 +6,7 @@
     <title>手動補登 | AI 拍拍中獎王</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #C8DDF0; }
         .loading-spinner {
             border: 4px solid rgba(26, 46, 74, 0.1);
             border-radius: 50%;
@@ -23,22 +23,40 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="min-h-screen p-4 flex flex-col justify-between select-none no-scrollbar overflow-y-auto" style="background-color:#C8DDF0; color:#1A2E4A;">
+<body class="min-h-screen flex flex-col justify-between select-none no-scrollbar">
 
-    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-3" style="background-color:#C8DDF0;">
-        <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold tracking-widest animate-pulse" style="color:#1A2E4A99;">SYSTEM INITIALIZING</p>
+    <!-- 🔔 全域自定義確認對話框 (Custom Alert Modal) -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+    
+    <div id="customAlert" class="fixed inset-x-4 top-1/3 max-w-sm mx-auto z-50 bg-white/95 border border-slate-200 p-6 rounded-3xl shadow-2xl transition-all duration-300 transform scale-90 opacity-0 pointer-events-none text-center space-y-4">
+        <div class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl" id="alertIconBg">
+            <span id="alertIcon">⚠️</span>
+        </div>
+        <div class="space-y-1">
+            <h3 id="alertTitle" class="text-base font-black tracking-wider text-slate-800">系統提示</h3>
+            <p id="alertMessage" class="text-xs text-slate-500 leading-relaxed whitespace-pre-line"></p>
+        </div>
+        <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-slate-200 shadow">
+            確認
+        </button>
     </div>
 
-    <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto">
+    <!-- 系統初始化擋牆屏障 -->
+    <div id="splashScreen" class="fixed inset-0 bg-slate-55 z-50 flex flex-col items-center justify-center space-y-3">
+        <div class="loading-spinner"></div>
+        <p class="text-xs font-semibold text-slate-400 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
+    </div>
+
+    <!-- 核心應用程式配置 -->
+    <div id="appLayout" class="min-h-screen flex flex-col w-full max-w-md mx-auto relative px-4">
         
-        <!-- 置頂輸入區塊 -->
+        <!-- 🌟 1. 數據概覽：置頂輸入卡片區塊 (100% 色彩與版面完全復刻) -->
         <div class="sticky top-0 z-10 pb-3" style="background-color:#C8DDF0;">
             <header class="text-center pt-2 pb-3" style="border-bottom:1px solid #B0CDE0;">
                 <div class="flex items-center justify-between">
                     <div class="flex-1 text-center">
                         <h1 class="text-xl font-black tracking-wider" style="color:#1A2E4A;">手動輸入發票</h1>
-                        <p id="envBadge" class="text-[10px] font-bold tracking-wide mt-0.5" style="color:#3A5A7A;">環境校準中...</p>
+                        <p id="envBadge" class="text-[10px] font-bold tracking-wide mt-0.5" style="color:#3A5A7A;">📱 LINE 行動補登模式 (曾昱融·Sunny)</p>
                     </div>
                     <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full shadow-inner" style="background:rgba(26,46,74,0.08); border:1px solid #B0CDE0;">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -48,11 +66,13 @@
             </header>
 
             <div class="rounded-3xl shadow-xl space-y-3 mt-3" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
-                <div>
-                    <label class="block text-sm font-black tracking-widest mb-1" style="color:#3A5A7A;">發票期別</label>
-                    <div class="relative">
-                        <select id="inputPeriod" class="w-full rounded-xl py-2.5 px-4 text-sm font-bold focus:outline-none transition appearance-none cursor-pointer" style="background:#C8DDF0; border:1px solid #B0CDE0; color:#1A2E4A;">
-                            </select>
+                <!-- 🎯 期別改為水平並列，極致節省垂直空間 -->
+                <div class="flex items-center justify-between gap-3">
+                    <label class="text-sm font-black tracking-widest shrink-0" style="color:#3A5A7A;">發票期別</label>
+                    <div class="relative flex-1">
+                        <select id="inputPeriod" class="w-full rounded-xl py-2 px-4 text-sm font-bold focus:outline-none transition appearance-none cursor-pointer" style="background:#C8DDF0; border:1px solid #B0CDE0; color:#1A2E4A;">
+                            <!-- 由 JavaScript 動態生成近三期期別 -->
+                        </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4" style="color:#3A5A7A;">▼</div>
                     </div>
                 </div>
@@ -60,7 +80,7 @@
                 <div class="grid grid-cols-12 gap-2">
                     <div class="col-span-4">
                         <label class="block text-sm font-black tracking-widest mb-1 text-center" style="color:#3A5A7A;">字軌</label>
-                        <input type="text" id="inputTrack" placeholder="AJ" maxlength="2" class="w-full rounded-xl py-2.5 text-base font-mono font-bold tracking-widest focus:outline-none transition uppercase text-center" style="background:#C8DDF0; border:1px solid #B0CDE0; color:#1A2E4A;">
+                        <input type="text" id="inputTrack" placeholder="AJ" maxlength="2" class="w-full rounded-xl py-2 text-base font-mono font-bold tracking-widest focus:outline-none transition uppercase text-center" style="background:#C8DDF0; border:1px solid #B0CDE0; color:#1A2E4A;">
                     </div>
                     <div class="col-span-8">
                         <label class="block text-sm font-black tracking-widest mb-1 text-center" style="color:#3A5A7A;">發票號碼</label>
@@ -74,76 +94,180 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto no-scrollbar space-y-3 py-3">
-            
-            <div id="manifestPanel" class="rounded-3xl p-4 space-y-3 shadow-xl hidden" style="background:#EBF4FB; border:1px solid #B0CDE0;">
-                <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
-                    <span class="text-sm font-black tracking-widest" style="color:#1A2E4A;">準備送出對獎清單</span>
-                    <span id="manifestCount" class="text-xs font-mono" style="color:#3A5A7A;">0張發票</span>
+        <!-- 🌟 2. 長清單與報告區域 (pb-48 緩衝防遮擋) -->
+        <main class="w-full flex-1 space-y-4 pb-48 overflow-y-auto no-scrollbar">
+            <!-- 📋 準備送出對獎清單 (本地隊列面板) -->
+            <div id="queuePanel" class="rounded-3xl p-4 space-y-3 hidden shadow shadow-sm" style="background:#EBF4FB; border:1px solid #B0CDE0;">
+                <div class="flex items-center justify-between border-b pb-2" style="border-bottom: 1px solid #B0CDE0;">
+                    <span class="text-xs font-black tracking-widest" style="color:#1A2E4A;">📋 準備送出對獎清單</span>
+                    <span id="queueCount" class="text-xs font-mono font-bold" style="color:#3A5A7A;">0 張發票</span>
                 </div>
-                <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
-                
-                <button id="btnSubmitAll" class="w-full font-black py-3.5 px-4 rounded-2xl text-sm tracking-widest transition duration-200 shadow" style="background:#FEF3C7; color:#92400e; border:1px solid #fcd34d;">
-                    🔥 點我一口氣全部對獎！
-                </button>
+                <div id="queueBox" class="space-y-2"></div>
             </div>
 
-            <div id="resultPanel" class="rounded-3xl p-4 space-y-3 shadow-xl hidden" style="background:#EBF4FB; border:1px solid #B0CDE0;">
-                <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
-                    <span class="text-sm font-black tracking-widest text-emerald-600">即時對獎報告明細</span>
+            <!-- ⚡ 即時對獎報告面板 -->
+            <div id="resultPanel" class="rounded-3xl p-4 space-y-3 hidden shadow shadow-sm" style="background:#EBF4FB; border:1px solid #B0CDE0;">
+                <div class="flex items-center justify-between border-b pb-2" style="border-bottom: 1px solid #B0CDE0;">
+                    <span class="text-xs font-black tracking-widest text-emerald-600">⚡ 手動對獎報告明細</span>
+                    <span id="resultCount" class="text-xs font-mono font-bold text-emerald-700">0 張發票</span>
                 </div>
-                <div id="resultBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                <div id="resultBox" class="space-y-2"></div>
             </div>
+        </main>
+
+        <!-- 🌟 3. 固定置底控制區塊（一口氣對獎按鈕，導覽列已完全移除） -->
+        <div id="bottomContainer" class="fixed bottom-0 inset-x-0 max-w-md mx-auto p-4 z-30 hidden" style="background-color:rgba(200, 221, 240, 0.95); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-top:1px solid #B0CDE0;">
+            <!-- 火力全開一口氣全部對獎按鈕 (有暫存資料才顯示) -->
+            <button id="btnAllWinning" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black py-3.5 rounded-2xl transition duration-200 shadow-md tracking-wider text-sm border border-amber-400/20 text-center">
+                🔥 點我一口氣全部對獎！
+            </button>
         </div>
-
     </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-4 hidden" style="background:rgba(200,221,240,0.95);">
+    <!-- 傳輸阻斷遮罩 -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
-        <p class="text-sm font-medium tracking-widest animate-pulse" style="color:#1A2E4A;">正在透過高鐵通道對獎中...</p>
+        <p id="loadingText" class="text-sm font-bold text-[#1A2E4A] tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
-        let REAL_DISPLAY_NAME = "PC網頁端補登使用者";
-        let invoiceList = []; 
+        let REAL_DISPLAY_NAME = "PC網頁端使用者";
+        let isLineEnv = false;
+
+        // 🎯 本地緩衝隊列數組
+        let invoiceQueue = [];
+
+        // =========================================================================
+        // 🔔 全域對話框控制核心
+        // =========================================================================
+        function showAlert(msg, title = "系統提示", icon = "⚠️", type = "warning") {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertIconBg = document.getElementById('alertIconBg');
+            const alertTitle = document.getElementById('alertTitle');
+            const alertMessage = document.getElementById('alertMessage');
+            const confirmBtn = document.getElementById('alertConfirmBtn');
+
+            alertIcon.innerText = icon;
+            alertTitle.innerText = title;
+            alertMessage.innerText = msg;
+
+            alertBox.classList.remove('border-rose-200', 'border-emerald-200', 'border-amber-200');
+            alertIconBg.className = "mx-auto w-12 h-12 rounded-full flex items-center justify-center text-2xl";
+            confirmBtn.className = "w-full font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow border";
+
+            if (type === 'error') {
+                alertBox.classList.add('border-rose-200');
+                alertIconBg.classList.add('bg-rose-50', 'text-rose-500');
+                confirmBtn.className = "w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-rose-500/20 shadow";
+            } else if (type === 'success') {
+                alertBox.classList.add('border-emerald-200');
+                alertIconBg.classList.add('bg-emerald-50', 'text-emerald-500');
+                confirmBtn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-emerald-500/20 shadow";
+            } else {
+                alertBox.classList.add('border-[#1A2E4A]/20');
+                alertIconBg.classList.add('bg-slate-50', 'text-amber-500');
+                confirmBtn.className = "w-full bg-[#1A2E4A] hover:bg-[#111E30] text-white font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 border border-slate-700/50 shadow";
+            }
+
+            backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            alertBox.classList.remove('scale-90', 'opacity-0', 'pointer-events-none');
+            alertBox.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeAlert() {
+            const backdrop = document.getElementById('modalBackdrop');
+            const alertBox = document.getElementById('customAlert');
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0', 'pointer-events-none');
+            alertBox.classList.remove('scale-100', 'opacity-100');
+            alertBox.classList.add('scale-90', 'opacity-0', 'pointer-events-none');
+        }
+
+        // =========================================================================
+        // 🗓️ 近三期期別生成晶片 (適配於 inputPeriod)
+        // =========================================================================
+        function generatePeriods() {
+            const select = document.getElementById('inputPeriod');
+            const date = new Date();
+            let year = date.getFullYear() - 1911; 
+            let month = date.getMonth() + 1; 
+
+            let currentPeriodMonth = month % 2 === 0 ? month - 1 : month;
+            
+            const periods = [];
+            for (let i = 0; i < 3; i++) {
+                if (currentPeriodMonth <= 0) {
+                    year--;
+                    currentPeriodMonth = 11;
+                }
+                const periodValue = `${year}${String(currentPeriodMonth).padStart(2, '0')}`;
+                
+                const startM = String(currentPeriodMonth).padStart(2, '0');
+                const endM = String(currentPeriodMonth + 1).padStart(2, '0');
+                const periodText = `${year}年 ${startM}-${endM} 月份`;
+                
+                periods.push({ val: periodValue, text: periodText });
+                currentPeriodMonth -= 2;
+            }
+            
+            select.innerHTML = periods.map(p => `<option value="${p.val}">${p.text}</option>`).join('');
+        }
+
+        function navigateToPage(url) {
+            if (window.location.protocol === 'blob:') {
+                showAlert("網頁預覽環境中限制跳轉。部署至 LINE 或 GitHub 生產環境時即可正常跳轉！", "預覽安全限制", "ℹ️", "warning");
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        function loadLiffSDK(callback) {
+            const script = document.createElement('script');
+            script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+            script.onload = callback;
+            script.onerror = () => {
+                console.error("LIFF SDK 載入失敗");
+                unlockUI();
+            };
+            document.head.appendChild(script);
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 🧠 核心修正點 (1)：100% 優先推算時間，完全不等待 LIFF，確保第一時間渲染骨架
-            initDynamicPeriodOptions();
+            generatePeriods();
+            setTimeout(() => { if (document.getElementById('splashScreen').style.display !== 'none') unlockUI(); }, 3000);
 
-            // 🧠 核心修正點 (2)：建立「防禦式超時熔斷晶片」。如果 1.5 秒內 LINE 引擎沒回應，直接強制解鎖介面！
-            const fallbackUnlocker = setTimeout(() => {
-                console.warn("🛡️ LINE In-App 啟動異常，啟動防禦熔斷強制解鎖畫面");
-                document.getElementById('envBadge').innerText = `📱 LINE 快速相容補登模式`;
-                unlockUI();
-            }, 1500);
+            const isBlob = window.location.protocol === 'blob:';
+            const isIframe = window.self !== window.top;
+            const isLine = navigator.userAgent.includes("Line") || window.location.search.includes("liff");
 
-            if (!navigator.userAgent.includes("Line") && window.location.search.includes("dev=true")) {
-                clearTimeout(fallbackUnlocker);
-                document.getElementById('envBadge').innerText = `🖥️ PC 跨端補除錯模式 (ID: ${REAL_USER_ID})`;
+            if (isBlob || isIframe || !isLine) {
+                isLineEnv = false;
+                document.getElementById('envBadge').innerText = `🖥️ PC 補登除錯模式 (ID: ${REAL_USER_ID})`;
                 unlockUI();
                 return;
             }
             
-            liff.init({ liffId: LIFF_ID }).then(() => {
-                if (!liff.isLoggedIn()) { 
-                    clearTimeout(fallbackUnlocker);
-                    liff.login(); 
-                } 
-                else {
-                    liff.getProfile().then(profile => { 
-                        clearTimeout(fallbackUnlocker); // 🎯 順利拿到身份，解除熔斷計時器
-                        REAL_USER_ID = profile.userId; 
-                        REAL_DISPLAY_NAME = profile.displayName;
-                        document.getElementById('envBadge').innerText = `📱 LINE 行動補登模式 (${REAL_DISPLAY_NAME})`;
-                        unlockUI(); 
-                    }).catch(err => { console.error(err); unlockUI(); });
-                }
-            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+            loadLiffSDK(() => {
+                liff.init({ liffId: LIFF_ID }).then(() => {
+                    isLineEnv = true;
+                    if (!liff.isLoggedIn()) { 
+                        try { liff.login(); } catch (loginErr) { console.error(loginErr); unlockUI(); }
+                    } else {
+                        liff.getProfile().then(profile => { 
+                            REAL_USER_ID = profile.userId; 
+                            REAL_DISPLAY_NAME = profile.displayName;
+                            document.getElementById('envBadge').innerText = `📱 LINE 行動補登模式 (${REAL_DISPLAY_NAME})`;
+                            unlockUI();
+                        }).catch(err => { console.error(err); unlockUI(); });
+                    }
+                }).catch(err => { console.error(err); unlockUI(); });
+            });
         });
 
         function unlockUI() {
@@ -151,183 +275,192 @@
             document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
         }
 
-        // 🧠 台灣電子發票動態 3 期滾動推算引擎 (原汁原味全量保留)
-        function initDynamicPeriodOptions() {
-            const selectEl = document.getElementById('inputPeriod');
-            selectEl.innerHTML = ""; 
-
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1; 
-            
-            let currentPeriodEndMonth = currentMonth % 2 === 0 ? currentMonth : currentMonth + 1;
-            let targetYear = currentYear;
-
-            for (let i = 0; i < 3; i++) {
-                if (currentPeriodEndMonth <= 0) {
-                    currentPeriodEndMonth = 12;
-                    targetYear -= 1;
-                }
-                const rocYear = targetYear - 1911; 
-                const periodValue = `${rocYear}${String(currentPeriodEndMonth).padStart(2, '0')}`; 
-                const startMonthStr = String(currentPeriodEndMonth - 1).padStart(2, '0');
-                const endMonthStr = String(currentPeriodEndMonth).padStart(2, '0');
-                const displayText = `${rocYear}年 ${startMonthStr}-${endMonthStr} 月份`;
-
-                const opt = document.createElement('option');
-                opt.value = periodValue;
-                opt.innerText = displayText;
-                selectEl.appendChild(opt);
-
-                currentPeriodEndMonth -= 2; 
-            }
+        function toggleLoading(show, text = "正在精準傳輸數據...") {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').innerText = text;
+            overlay.classList.toggle('hidden', !show);
         }
 
-        document.getElementById('inputTrack').addEventListener('input', function(e) {
-            this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
-        });
-        document.getElementById('inputNumber').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-
-        // ➕ 完美復原「增加下一組」到 manifest 記憶體清單 (原汁原味全量保留)
+        // =========================================================================
+        // ➕ 點我增加下一組：本地驗證與收集
+        // =========================================================================
         document.getElementById('btnAddInvoice').addEventListener('click', () => {
-            const trackInput = document.getElementById('inputTrack');
-            const numInput = document.getElementById('inputNumber');
-            const periodSelect = document.getElementById('inputPeriod');
-            
-            const finalTrack = trackInput.value.trim().toUpperCase();
-            const finalNum = numInput.value.trim();
-            const rawPeriod = periodSelect.value;
+            const period = document.getElementById('inputPeriod').value;
+            const track = document.getElementById('inputTrack').value.trim().toUpperCase();
+            const num = document.getElementById('inputNumber').value.trim();
 
-            if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
-            if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
-
-            let finalPeriod = rawPeriod;
-            if (rawPeriod.length === 5) {
-                const year = rawPeriod.substring(0, 3);
-                const month = parseInt(rawPeriod.substring(3, 5), 10);
-                if (month % 2 === 0) {
-                    finalPeriod = year + String(month - 1).padStart(2, '0');
-                }
+            if (!/^[A-Z]{2}$/.test(track)) {
+                showAlert("發票字軌必須是 2 碼英文喔！（例如：AJ）", "輸入有誤", "⚠️", "warning");
+                return;
+            }
+            if (!/^\d{8}$/.test(num)) {
+                showAlert("發票號碼必須是 8 碼數字喔！（例如：07801615）", "輸入有誤", "⚠️", "warning");
+                return;
             }
 
-            const invoiceItem = {
-                "status": "success",
-                "reason": "",
-                "發票字軌與號碼": finalTrack + "-" + finalNum, 
-                "發票號碼": finalNum,
-                "發票期別": finalPeriod, 
-                "發票輸入方式": "手動輸入"
-            };
+            // 防重複檢索
+            const isDuplicate = invoiceQueue.some(inv => inv.tracking === track && inv.serial === num && inv.period === period);
+            if (isDuplicate) {
+                showAlert("這張發票已經在準備對獎清單中囉！", "重複輸入", "⚠️", "warning");
+                return;
+            }
 
-            invoiceList.push(invoiceItem);
-            renderManifestList();
+            // 寫入隊列
+            invoiceQueue.push({ period: period, tracking: track, serial: num });
+            
+            // 清空輸入框以利下一次點擊
+            document.getElementById('inputTrack').value = "";
+            document.getElementById('inputNumber').value = "";
 
-            trackInput.value = "";
-            numInput.value = "";
-            trackInput.focus();
+            // 重新渲染本地清單與更新置底按鈕
+            renderQueue();
         });
 
-        function renderManifestList() {
-            const panel = document.getElementById('manifestPanel');
-            const box = document.getElementById('manifestBox');
-            const countBadge = document.getElementById('manifestCount');
-            
-            box.innerHTML = "";
-            if (invoiceList.length === 0) { panel.classList.add('hidden'); return; }
+        // =========================================================================
+        // 📋 渲染準備送出對獎清單 (Queue) & 置底按鈕動態同步
+        // =========================================================================
+        function renderQueue() {
+            const panel = document.getElementById('queuePanel');
+            const box = document.getElementById('queueBox');
+            const countLabel = document.getElementById('queueCount');
+            const btnAllWinning = document.getElementById('btnAllWinning');
+            const bottomContainer = document.getElementById('bottomContainer');
+
+            if (invoiceQueue.length === 0) {
+                panel.classList.add('hidden');
+                bottomContainer.classList.add('hidden'); // 隊列為空，底部大按鈕及整個底座容器剛性隱藏
+                return;
+            }
 
             panel.classList.remove('hidden');
-            countBadge.innerText = `${invoiceList.length}張發票`;
+            bottomContainer.classList.remove('hidden'); // 隊列有資料，底部大按鈕底座優雅浮現
+            
+            countLabel.innerText = `${invoiceQueue.length} 張發票`;
+            btnAllWinning.innerText = `🔥 點我一口氣全部對獎 ${invoiceQueue.length}張！`;
 
-            invoiceList.forEach((item, index) => {
-                const year = item.發票期別.substring(0, 3);
-                const startM = parseInt(item.發票期別.substring(3, 5), 10);
-                const displayPeriod = `${year}年 ${String(startM).padStart(2, '0')}-${String(startM + 1).padStart(2, '0')} 月`;
+            box.innerHTML = "";
+            invoiceQueue.forEach((inv, index) => {
+                const card = document.createElement('div');
+                card.className = "flex justify-between items-center bg-white p-3 rounded-2xl border shadow-sm animate-fadeIn";
+                card.style.cssText = "border-color:#B0CDE0; background:#EBF4FB;";
+                
+                let displayPeriod = "期別格式錯誤";
+                if (inv.period && inv.period.length === 5) {
+                    const year = inv.period.substring(0, 3); 
+                    const startMonth = parseInt(inv.period.substring(3, 5), 10);
+                    const endMonth = startMonth + 1;
+                    displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                }
 
-                const row = document.createElement('div');
-                row.className = "p-3 rounded-2xl border flex items-center justify-between text-sm font-bold tracking-wide animate-fadeIn shadow-inner";
-                row.style.cssText = "background:#C8DDF0; border-color:#B0CDE0;";
-                row.innerHTML = `
-                    <div class="flex items-center space-x-3.5">
-                        <span class="font-black text-xs" style="color:#3A5A7A;">${displayPeriod}</span>
-                        <span class="font-black tracking-widest text-base" style="color:#1A2E4A;">${item.發票字軌與號碼}</span>
+                card.innerHTML = `
+                    <div class="text-xs space-y-0.5 text-left">
+                        <span class="font-black block text-sm tracking-widest font-mono" style="color:#1A2E4A;">📄 ${inv.tracking}-${inv.serial}</span>
+                        <span class="block font-bold text-[10px]" style="color:#3A5A7A;">${displayPeriod}</span>
                     </div>
-                    <button onclick="removeInvoice(${index})" class="hover:text-rose-500 transition text-lg px-2" style="color:#8AACBF;">✕</button>
+                    <button onclick="removeFromQueue(${index})" class="text-xs font-black text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-100 transition duration-150">
+                        移除
+                    </button>
                 `;
-                box.appendChild(row); 
+                box.appendChild(card);
             });
         }
 
-        window.removeInvoice = function(index) {
-            invoiceList.splice(index, 1);
-            renderManifestList();
+        // 從隊列中單筆移除
+        window.removeFromQueue = function(index) {
+            invoiceQueue.splice(index, 1);
+            renderQueue();
         };
 
-        // 🔥 點我一口氣全部對獎！ (原汁原味全量保留)
-        document.getElementById('btnSubmitAll').addEventListener('click', async () => {
-            if (invoiceList.length === 0) return;
-            
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.remove('hidden');
+        // =========================================================================
+        // 🔥 點我一口氣全部對獎：批量封裝打包發射
+        // =========================================================================
+        document.getElementById('btnAllWinning').addEventListener('click', async () => {
+            if (invoiceQueue.length === 0) return;
 
-            const standardizedPayload = `MANUAL_INPUT:${JSON.stringify(invoiceList)}`;
+            const events = invoiceQueue.map(inv => ({
+                source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
+                message: { text: JSON.stringify({
+                    type: "MANUAL",
+                    tracking: inv.tracking,
+                    serial: inv.serial,
+                    period: inv.period
+                }) }
+            }));
 
+            toggleLoading(true, `正在為您一口氣送出 ${invoiceQueue.length} 張發票進行對獎...`);
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
+                    method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({
-                        events: [{
-                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
-                            message: { text: standardizedPayload } 
-                        }]
-                    })
+                    body: JSON.stringify({ events: events })
                 });
+                
+                if (res.ok) {
+                    let bulkResults = await res.json(); 
+                    if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
+                    
+                    // 1. 清空緩衝隊列
+                    invoiceQueue = [];
+                    renderQueue();
 
-                if (!res.ok) throw new Error("中台連線異常");
-
-                let bulkResults = await res.json();
-                if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
-
-                renderFinalResults(bulkResults);
-                invoiceList = [];
-                renderManifestList();
-            } catch (err) {
-                alert("❌ 對獎傳輸失敗，請確認 ngrok 狀態或後端畫布開關。");
-            } finally {
-                overlay.classList.add('hidden');
+                    // 2. 渲染並展示即時對獎報告
+                    renderResults(bulkResults);
+                } else {
+                    showAlert("中台對獎無回應，請確認 n8n 開關是否正常開啟。", "連線異常", "❌", "error");
+                }
+            } catch (err) { 
+                console.error(err); 
+                showAlert("對獎傳輸失敗，請確認網絡連線或 ngrok 狀態。", "傳輸失敗", "❌", "error");
+            } finally { 
+                toggleLoading(false); 
             }
         });
 
-        function renderFinalResults(items) {
-            const panel = document.getElementById('resultPanel');
+        // =========================================================================
+        // ⚡ 渲染最終對獎報告明細 (完全對齊 manual(1).html 專屬高質感輕配色)
+        // =========================================================================
+        function renderResults(items) {
+            const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
             panel.classList.remove('hidden');
-            box.innerHTML = "";
+            box.innerHTML = ""; // 每次點擊一口氣全部對獎時重新清洗
+            
+            let successCount = 0;
 
             items.forEach(rawItem => {
-                const data = rawItem.json ? rawItem.json : rawItem;
+                let data = rawItem.json ? rawItem.json : rawItem; 
                 const card = document.createElement('div');
                 
-                let displayPeriod = "期別格式錯誤";
-                if (data.發票期別 && data.發票期別.length === 5) {
-                    const year = data.發票期別.substring(0, 3);
-                    const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                    displayPeriod = `${year}年 ${String(startMonth).padStart(2, '0')}-${String(startMonth + 1).padStart(2, '0')} 月`;
+                if (data.status === "success" && data.狀態 !== "not_invoice") {
+                    successCount++;
                 }
 
-                let statusStyle = "border-color:#B0CDE0; background:#EBF4FB; color:#3A5A7A;";
+                let displayPeriod = "期別格式錯誤";
+                if (data.發票期別 && data.發票期別.length === 5) {
+                    const year = data.發票期別.substring(0, 3); 
+                    const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
+                    const endMonth = startMonth + 1;
+                    displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                }
+
+                let statusStyle = ""; 
                 let rightSideHtml = "";
 
                 if (data.status === "error" || data.狀態 === "not_invoice") {
-                    statusStyle = "border-color:#fca5a5; background:#FEF2F2; color:#991b1b;";
-                    rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2.5 py-0.5 rounded-full font-black" style="background:#fee2e2; color:#dc2626;">❌ 失敗</span></div>`;
-                    card.innerHTML = `<div class="text-xs text-left"><span class="font-black block text-base" style="color:#dc2626;">🐱 不是台灣發票</span></div>${rightSideHtml}`;
+                    statusStyle = "border-color:#fecdd3; background:#fff1f2;";
+                    rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-black" style="background:#ffe4e6; color:#e11d48;">❌ 失敗</span></div>`;
+                    
+                    card.innerHTML = `
+                        <div class="text-xs space-y-0.5 text-left">
+                            <span class="font-black block text-base tracking-wide" style="color:#e11d48;">🐱 不是台灣發票</span>
+                            <span class="text-slate-400 font-mono text-[10px] block mt-1">系統已自動隔離落盤通道</span>
+                        </div>
+                        ${rightSideHtml}
+                    `;
                 } else {
                     if (data.狀態 === "中獎") {
-                        statusStyle = "border-color:#fcd34d; background:#FFFBEB;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2 py-0.5 rounded-full font-black" style="background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="text-base font-black mt-1" style="color:#92400e;">+${data.金額} 元</div></div>`;
+                        statusStyle = "border-color:#fef08a; background:#fefcbf;";
+                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-black" style="background:#fef08a; color:#a16207;">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 tracking-wide" style="color:#b45309;">+${data.金額} 元</div></div>`;
                     } else if (data.狀態 === "未中獎") {
                         statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
                         rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
@@ -338,16 +471,18 @@
 
                     card.innerHTML = `
                         <div class="text-xs space-y-0.5 text-left">
-                            <span class="font-black block text-base tracking-widest font-mono" style="color:#1A2E4A;">${data.發票字軌與號碼 || '手動輸入'}</span>
+                            <span class="font-black block text-base tracking-widest font-mono" style="color:#1A2E4A;">📄 ${data.發票字軌與號碼 || '手動輸入'}</span>
                             <span class="block font-bold mt-0.5" style="color:#3A5A7A;">${displayPeriod}</span>
                         </div>
                         ${rightSideHtml}
                     `;
                 }
                 card.className = `p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow`;
-                card.style.cssText = statusStyle;
-                box.insertBefore(card, box.firstChild);
+                card.setAttribute('style', statusStyle);
+                box.appendChild(card);
             });
+
+            document.getElementById('resultCount').innerText = `${successCount} 張發票`;
         }
     </script>
 </body>
