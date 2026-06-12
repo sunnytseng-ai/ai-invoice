@@ -7,15 +7,106 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.05); border-radius: 50%; border-top: 4px solid #10b981; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
+        .loading-spinner { 
+            border: 4px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 50%; 
+            border-top: 4px solid #10b981; 
+            width: 45px; 
+            height: 45px; 
+            animation: spin 0.8s linear infinite; 
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #appLayout { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
+
+    <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
+        <div class="loading-spinner"></div>
+        <p class="text-xs font-semibold text-emerald-500 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
+    </div>
+
+    <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto animate-fadeIn">
+        <div class="space-y-6">
+            <header class="text-center pt-4 flex items-center justify-between border-b border-slate-900 pb-4">
+                <div class="text-left">
+                    <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">AI 拍拍中獎王</h1>
+                    <p id="envBadge" class="text-[10px] text-slate-500 font-bold tracking-wide mt-0.5">環境校準中...</p>
+                </div>
+                <span class="text-xs font-bold bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl shadow text-emerald-400">PORTAL v2.0</span>
+            </header>
+
+            <div class="space-y-4">
+                <div onclick="window.location.href='./manual.html'" class="bg-slate-900/60 border border-slate-900 hover:border-purple-500/40 rounded-3xl p-5 shadow-2xl cursor-pointer transition duration-300 group">
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-1">
+                            <h3 class="text-lg font-black text-slate-100 group-hover:text-purple-400 transition">✍️ 網頁手動補登</h3>
+                            <p class="text-xs text-slate-400">免翻拍發票，手機直接輸入字軌與號碼對獎</p>
+                        </div>
+                        <span class="text-xl group-hover:translate-x-1 transition duration-200">➔</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/30 border border-slate-900/60 rounded-3xl p-5 shadow-inner opacity-70">
+                    <div class="space-y-1">
+                        <h3 class="text-base font-bold text-slate-400">📸 拍照與 QR 掃描對獎</h3>
+                        <p class="text-xs text-slate-500">請直接於 LINE 聊天室內傳送發票照片，AI 將自動啟動辨識</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-4 border-t border-slate-900 mt-6 text-xs text-slate-600 font-medium tracking-wide">
+            © 2026 AI 拍拍中獎王 | 數據整合控制中台
+        </footer>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook/Winning';
-        
+        const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
+        const LIFF_ID = '2010235526-CeuGpVfZ'; 
+        let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
+        let REAL_DISPLAY_NAME = "PC網頁端使用者";
+
+        // 🛡️ 剛性生命週期熔斷晶片：1.5 秒內若 LINE 引擎沒回應，強行撕開隱藏遮罩！
+        document.addEventListener("DOMContentLoaded", () => {
+            const fallbackUnlocker = setTimeout(() => {
+                console.warn("🛡️ 啟動防禦熔斷強制解鎖入口");
+                document.getElementById('envBadge').innerText = `📱 LINE 快速相容入口`;
+                unlockUI();
+            }, 1500);
+
+            if (!navigator.userAgent.includes("Line") && !window.location.search.includes("liff")) {
+                clearTimeout(fallbackUnlocker);
+                document.getElementById('envBadge').innerText = `🖥️ PC 跨端除錯門戶 (ID: ${REAL_USER_ID})`;
+                unlockUI();
+                return;
+            }
+            
+            liff.init({ liffId: LIFF_ID }).then(() => {
+                if (!liff.isLoggedIn()) { 
+                    clearTimeout(fallbackUnlocker);
+                    liff.login(); 
+                } else {
+                    liff.getProfile().then(profile => { 
+                        clearTimeout(fallbackUnlocker);
+                        REAL_USER_ID = profile.userId; 
+                        REAL_DISPLAY_NAME = profile.displayName;
+                        document.getElementById('envBadge').innerText = `📱 LINE 行動對獎門戶 (${REAL_DISPLAY_NAME})`;
+                        unlockUI(); 
+                    }).catch(err => { console.error(err); unlockUI(); });
+                }
+            }).catch(err => { console.error("LIFF failed:", err); unlockUI(); });
+        });
+
+        function unlockUI() {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('appLayout').setAttribute('style', 'display: flex !important;');
+        }
+
+        // 🎯 核心規格化 QR_CODE 噴射引擎
         async function fireQrCodeResult(decodedText) {
             const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
             const matchResult = decodedText.match(validQrRegex);
@@ -29,13 +120,11 @@
             const serial = matchResult[3];
             const rawPeriod = matchResult[4];
             
-            // 期別剛性收束：雙數月轉單數月
             let period = rawPeriod;
             if (parseInt(rawPeriod.substring(3, 5), 10) % 2 === 0) {
                 period = rawPeriod.substring(0, 3) + String(parseInt(rawPeriod.substring(3, 5), 10) - 1).padStart(2, '0');
             }
             
-            // 🎯 核心修正：將資料封裝成結構化 JSON 物件
             const payload = {
                 type: "QR_CODE",
                 tracking: tracking,
@@ -48,7 +137,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        events: [{ message: { text: JSON.stringify(payload) } }]
+                        events: [{
+                            source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME },
+                            message: { text: JSON.stringify(payload) } 
+                        }]
                     })
                 });
                 alert("✅ 發票已送出，正在對獎！");
