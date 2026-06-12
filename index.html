@@ -172,7 +172,7 @@
                                      window.location.search.includes('page=history');
 
             if (hasHistoryIntent) {
-                window.location.href = "./history.html?page=history";
+                window.location.href = "./history.html";
                 return; 
             }
 
@@ -182,7 +182,7 @@
                                     window.location.search.includes('page=manual');
 
             if (hasManualIntent) {
-                window.location.href = "./manual.html?page=manual";
+                window.location.href = "./manual.html";
                 return; 
             }
 
@@ -200,7 +200,7 @@
                 
                 const context = liff.getContext();
                 if (context && context.url && context.url.includes('page=manual')) {
-                    window.location.href = "./manual.html?page=manual";
+                    window.location.href = "./manual.html";
                     return;
                 }
 
