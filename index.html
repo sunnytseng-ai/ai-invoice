@@ -210,8 +210,20 @@
             }
         }
 
+        // 📸 傳統發票圖片批量解包流 (已完美整合副檔名防呆熔斷機制)
         document.getElementById('imageCapture').addEventListener('change', async (e) => {
             const files = Array.from(e.target.files); if (files.length === 0) return;
+
+            // 🧠 核心防呆白名單過濾機制
+            const allowedExtensions = /(\.jpg|\.jpeg|\.png|\.heic|\.webp)$/i;
+            const hasInvalidFile = files.some(file => !allowedExtensions.test(file.name));
+            
+            if (hasInvalidFile) {
+                alert("⚠️ 偵測到不支援的檔案格式！\n\n小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。📸");
+                e.target.value = ""; // 清空違規物件，釋放核心執行緒
+                return; // 🎯 剛性熔斷：拒絕向後端 N8N 噴射髒資料
+            }
+
             processedCount = 0; document.getElementById('resultBox').innerHTML = "";
             toggleLoading(true, `正在啟動 2.0 影像優化引水管道...`);
             for (let i = 0; i < files.length; i++) {
@@ -238,7 +250,6 @@
             toggleLoading(false); e.target.value = "";
         });
 
-        // 🎨 卡片渲染引擎 (已精密校準期別收束顯示邏輯)
         function renderResults(items) {
             const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
@@ -255,12 +266,10 @@
                     document.getElementById('resultCount').innerText = `0 張發票`;
                 }
 
-                // 🎯 核心修正點：精密回推單數期別對應的雙月雙軌區間
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
                     const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                    // 剛性對齊：既然傳入的是單數收束月(如05)，那顯示區間就是 05 - 06月
                     const endMonth = startMonth + 1;
                     displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
                 }
