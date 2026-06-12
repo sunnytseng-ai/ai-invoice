@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>手動補登 | AI 拍拍中獎王</title>
+    <title>AI 拍拍中獎王 | 手動輸入</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -48,11 +48,12 @@
             </header>
 
             <div class="rounded-3xl shadow-xl space-y-3 mt-3" style="background:#EBF4FB; border:1px solid #B0CDE0; padding:20px;">
-                <div>
-                    <label class="block text-sm font-black tracking-widest mb-1" style="color:#3A5A7A;">發票期別</label>
-                    <div class="relative">
+                <!-- 發票期別：label 與 select 同列，label 與字軌同寬 (col-span-4 = 33.33%) -->
+                <div class="grid grid-cols-12 gap-2 items-center">
+                    <label class="col-span-4 text-sm font-black tracking-widest text-center" style="color:#3A5A7A;">發票期別</label>
+                    <div class="col-span-8 relative">
                         <select id="inputPeriod" class="w-full rounded-xl py-2.5 px-4 text-sm font-bold focus:outline-none transition appearance-none cursor-pointer" style="background:#C8DDF0; border:1px solid #B0CDE0; color:#1A2E4A;">
-                            </select>
+                        </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4" style="color:#3A5A7A;">▼</div>
                     </div>
                 </div>
@@ -74,7 +75,7 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto no-scrollbar space-y-3 py-3">
+        <div class="flex-1 overflow-y-auto no-scrollbar space-y-3 py-3" style="padding-bottom: 90px;">
             
             <div id="manifestPanel" class="rounded-3xl p-4 space-y-3 shadow-xl hidden" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                 <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
@@ -83,9 +84,7 @@
                 </div>
                 <div id="manifestBox" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
                 
-                <button id="btnSubmitAll" class="w-full font-black py-3.5 px-4 rounded-2xl text-sm tracking-widest transition duration-200 shadow" style="background:#FEF3C7; color:#92400e; border:1px solid #fcd34d;">
-                    🔥 點我一口氣全部對獎！
-                </button>
+
             </div>
 
             <div id="resultPanel" class="rounded-3xl p-4 space-y-3 shadow-xl hidden" style="background:#EBF4FB; border:1px solid #B0CDE0;">
@@ -96,6 +95,15 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- 🔥 固定在最下方的對獎按鈕 -->
+    <div id="stickySubmitBar" class="fixed bottom-0 left-0 right-0 z-40 hidden" style="background:linear-gradient(to top, #C8DDF0 70%, transparent); padding: 12px 16px 20px;">
+        <div class="max-w-md mx-auto">
+            <button id="btnSubmitAll" class="w-full font-black py-4 px-4 rounded-2xl text-base tracking-widest transition duration-200 shadow-xl" style="background:#FEF3C7; color:#92400e; border:1px solid #fcd34d;">
+                🔥 點我一口氣全部對獎！
+            </button>
+        </div>
     </div>
 
     <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center space-y-4 hidden" style="background:rgba(200,221,240,0.95);">
@@ -203,6 +211,16 @@
             if (finalTrack.length !== 2) { alert("字軌必須是 2 碼英文喔！（例如：AJ）"); trackInput.focus(); return; }
             if (finalNum.length !== 8) { alert("發票號碼必須是 8 碼數字喔！（例如：07801615）"); numInput.focus(); return; }
 
+            // 🔍 重複偵測：同字軌＋號碼已在清單中
+            const duplicateKey = finalTrack + "-" + finalNum;
+            const isDuplicate = invoiceList.some(item => item.發票字軌與號碼 === duplicateKey);
+            if (isDuplicate) {
+                alert(`⚠️ 發票 ${duplicateKey} 已經在清單裡囉！\n請確認是否輸入重複了。`);
+                numInput.focus();
+                numInput.select();
+                return;
+            }
+
             let finalPeriod = rawPeriod;
             if (rawPeriod.length === 5) {
                 const year = rawPeriod.substring(0, 3);
@@ -222,6 +240,10 @@
             };
 
             invoiceList.push(invoiceItem);
+            // 新增時清除「即時對獎報告明細」
+            const resultPanel = document.getElementById('resultPanel');
+            resultPanel.classList.add('hidden');
+            document.getElementById('resultBox').innerHTML = '';
             renderManifestList();
 
             trackInput.value = "";
@@ -233,12 +255,20 @@
             const panel = document.getElementById('manifestPanel');
             const box = document.getElementById('manifestBox');
             const countBadge = document.getElementById('manifestCount');
+            const stickyBar = document.getElementById('stickySubmitBar');
+            const btnSubmitAll = document.getElementById('btnSubmitAll');
             
             box.innerHTML = "";
-            if (invoiceList.length === 0) { panel.classList.add('hidden'); return; }
+            if (invoiceList.length === 0) {
+                panel.classList.add('hidden');
+                stickyBar.classList.add('hidden');
+                return;
+            }
 
             panel.classList.remove('hidden');
+            stickyBar.classList.remove('hidden');
             countBadge.innerText = `${invoiceList.length}張發票`;
+            btnSubmitAll.innerText = `🔥 點我對獎 ${invoiceList.length} 張發票！`;
 
             invoiceList.forEach((item, index) => {
                 const year = item.發票期別.substring(0, 3);
@@ -247,7 +277,7 @@
 
                 const row = document.createElement('div');
                 row.className = "p-3 rounded-2xl border flex items-center justify-between text-sm font-bold tracking-wide animate-fadeIn shadow-inner";
-                row.style.cssText = "background:#C8DDF0; border-color:#B0CDE0;";
+                row.style.cssText = "background:#F4F9FD; border-color:#D8EAF5;";
                 row.innerHTML = `
                     <div class="flex items-center space-x-3.5">
                         <span class="font-black text-xs" style="color:#3A5A7A;">${displayPeriod}</span>
@@ -290,9 +320,9 @@
                 let bulkResults = await res.json();
                 if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
 
-                renderFinalResults(bulkResults);
                 invoiceList = [];
-                renderManifestList();
+                renderManifestList(); // 清單歸零，自動隱藏
+                renderFinalResults(bulkResults); // 顯示結果
             } catch (err) {
                 alert("❌ 對獎傳輸失敗，請確認 ngrok 狀態或後端畫布開關。");
             } finally {
