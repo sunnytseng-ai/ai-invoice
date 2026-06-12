@@ -64,8 +64,8 @@
         <div id="summaryCard" class="sticky top-0 z-10 pb-2 hidden" style="background-color:#C8DDF0;">
             <div class="rounded-2xl p-4 grid grid-cols-2 gap-4 text-center shadow-xl" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                 <div class="border-r" style="border-color:#B0CDE0;">
-                    <span class="text-[14px] font-black block" style="color:#3A5A7A;">累計對獎張數</span>
-                    <span id="totalCount" class="text-xl font-mono font-black mt-1 block" style="color:#1A2E4A;">0 張</span>
+                    <span class="text-[14px] font-black block" style="color:#98C0FE;">累計對獎張數</span>
+                    <span id="totalCount" class="text-xl font-mono font-black mt-1 block" style="color:#98C0FE;">0 張</span>
                 </div>
                 <div>
                     <span class="text-[14px] font-black block" style="color:#B45309;">🎉 幸運中獎金額</span>
@@ -302,7 +302,7 @@
                 // 渲染群組標頭
                 const headerDiv = document.createElement('div');
                 headerDiv.className = "flex items-center justify-between pb-2.5"; headerDiv.style.cssText = "border-bottom:1px solid #B0CDE0;";
-                headerDiv.innerHTML = '<div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full ' + (hasPending ? 'bg-blue-500 animate-pulse' : (groupBonus > 0 ? 'bg-amber-500' : 'bg-slate-400')) + '"></span><span class="text-lg font-black" style="color:#1A2E4A">' + displayPeriod + '</span></div><div class="flex items-center space-x-2"><span class="text-[10px] font-bold" style="color:#3A5A7A">共 ' + groupCount + ' 張</span><span class="text-[10px] px-2 py-0.5 rounded-full font-black border" style="' + groupStatusStyle + '">' + groupStatusText + '</span></div>';
+                headerDiv.innerHTML = '<div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full ' + (hasPending ? 'bg-blue-500 animate-pulse' : (groupBonus > 0 ? 'bg-amber-500' : 'bg-slate-400')) + '"></span><span class="text-lg font-black" style="color:#1A2E4A">' + displayPeriod + '</span></div><div class="flex items-center space-x-2"><span class="text-[10px] font-bold" style="color:#3A5A7A; font-size:12px">共 ' + groupCount + ' 張</span><span class="text-[10px] px-2 py-0.5 rounded-full font-black border" style="' + groupStatusStyle + '">' + groupStatusText + '</span></div>';
                 periodCard.appendChild(headerDiv);
 
                 // 渲染群組內發票明細（中獎優先，金額大到小）
@@ -337,7 +337,26 @@
                     }
 
                     itemDiv.className = "p-3 rounded-xl border flex items-center justify-between transition duration-200"; itemDiv.style.cssText = statusStyle;
-                    itemDiv.innerHTML = '<div class="text-left space-y-0.5"><span class="font-bold block font-mono tracking-wide" style="font-size:18px; color:#1A2E4A">' + (inv.發票字軌與號碼 || '未知號碼') + '</span></div><div class="text-right space-y-0.5"><span class="font-black" style="font-size:14px; color:' + statusTextColor + ';">' + statusText + '</span>' + (amountText ? '<div class="font-mono font-black" style="font-size:14px; color:#92400e;">' + amountText + '</div>' : '') + '</div>';
+                    const fullNum = inv.發票字軌與號碼 || '未知號碼';
+                    const winAmt = parseInt(inv.金額, 10) || 0;
+                    let redDigits = 0;
+                    if (inv.狀態 === '中獎') {
+                        if (winAmt >= 2000000) redDigits = 8;
+                        else if (winAmt >= 40000) redDigits = 7;
+                        else if (winAmt >= 10000) redDigits = 6;
+                        else if (winAmt >= 4000) redDigits = 5;
+                        else if (winAmt >= 1000) redDigits = 4;
+                        else if (winAmt >= 200) redDigits = 3;
+                    }
+                    let invoiceDisplay = '';
+                    if (redDigits > 0 && fullNum.length >= redDigits) {
+                        const prefix = fullNum.slice(0, fullNum.length - redDigits);
+                        const redPart = fullNum.slice(fullNum.length - redDigits);
+                        invoiceDisplay = '<span style="color:#1A2E4A">' + prefix + '</span><span style="color:#DC2626; font-weight:900">' + redPart + '</span>';
+                    } else {
+                        invoiceDisplay = '<span style="color:#1A2E4A">' + fullNum + '</span>';
+                    }
+                    itemDiv.innerHTML = '<div class="text-left space-y-0.5"><span class="font-bold block font-mono tracking-wide" style="font-size:18px">' + invoiceDisplay + '</span></div><div class="text-right space-y-0.5"><span class="font-black" style="font-size:14px; color:' + statusTextColor + ';">' + statusText + '</span>' + (amountText ? '<div class="font-mono font-black" style="font-size:14px; color:#92400e;">' + amountText + '</div>' : '') + '</div>';
                     listDiv.appendChild(itemDiv);
                 });
 
