@@ -23,11 +23,13 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col justify-between select-none">
 
+    <!-- 系統初始化擋牆屏障 -->
     <div id="splashScreen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center space-y-3">
         <div class="loading-spinner"></div>
-        <p class="text-xs font-semibold text-slate-500 tracking-widest">SYSTEM INITIALIZING</p>
+        <p class="text-xs font-semibold text-slate-500 tracking-widest animate-pulse">SYSTEM INITIALIZING</p>
     </div>
 
+    <!-- 核心應用程式配置 -->
     <div id="appLayout" class="min-h-screen flex flex-col justify-between w-full max-w-md mx-auto">
         
         <header class="text-center pt-2 flex items-center justify-between border-b border-slate-900 pb-3">
@@ -79,14 +81,14 @@
         </footer>
     </div>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 z-50 flex flex-col items-center justify-center space-y-4 hidden">
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center space-y-4 hidden">
         <div class="loading-spinner"></div>
         <p id="loadingText" class="text-sm font-bold text-emerald-400 tracking-widest animate-pulse">正在精準傳輸數據...</p>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // 🚀 【WBS 2.0 正式上線】剛性移除 -test，全面對齊背景 24H 生產環境
+        // 🚀 【WBS 2.0 正式上線】剛性對齊生產環境
         const N8N_WEBHOOK_URL = 'https://strangle-utopia-accompany.ngrok-free.dev/webhook-test/Winning';
         const LIFF_ID = '2010235526-CeuGpVfZ'; 
         let REAL_USER_ID = "PC_USER_DEV_" + Math.floor(1000 + Math.random() * 9000);
@@ -169,24 +171,48 @@
             }
         });
 
+        /**
+         * 🎯 核心規格化 QR_CODE 封裝與期別剛性收束
+         * @param {string} decodedText - 來自發票 QR Code 的原始字串
+         */
         async function fireQrCodeResult(decodedText) {
-            const validQrRegex = /[A-Z]{2}[0-9]{8}\d{5}/i;
+            // 使用群組捕獲 Regex 提取 字軌、號碼、與期別
+            const validQrRegex = /([A-Z]{2})(-?)([0-9]{8})(\d{5})/i;
             const matchResult = decodedText.match(validQrRegex);
+            
             if (!matchResult) {
                 alert("⚠️ 哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！📸");
                 return;
             }
-            const sanitizedQrText = decodedText.substring(matchResult.index).trim();
+
+            const tracking = matchResult[1].toUpperCase();
+            const serial = matchResult[3];
+            const rawPeriod = matchResult[4];
+
+            // 🧠 期別剛性收束：雙數月轉單數月 (例如 11502 ➔ 11501)
+            let period = rawPeriod;
+            if (parseInt(rawPeriod.substring(3, 5), 10) % 2 === 0) {
+                period = rawPeriod.substring(0, 3) + String(parseInt(rawPeriod.substring(3, 5), 10) - 1).padStart(2, '0');
+            }
+
+            // 🎯 核心修正：將發票欄位封裝成規格化 JSON 物件，保障後續對獎無縫解耦
+            const payload = {
+                type: "QR_CODE",
+                tracking: tracking,
+                serial: serial,
+                period: period
+            };
+
             toggleLoading(true, "電子發票解碼成功！正在送往高鐵跑道...");
             try {
                 const res = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    // 🎯【源頭整治】：精準扒掉最外層 body 嵌套，將 events 直接拋出
+                    // 🎯 將結構化 JSON 字串包覆後射出，與 N8N 新解析軌道完美合流
                     body: JSON.stringify({
                         events: [{ 
                             source: { userId: REAL_USER_ID, displayName: REAL_DISPLAY_NAME }, 
-                            message: { text: "QR_DECODED:" + sanitizedQrText } 
+                            message: { text: JSON.stringify(payload) } 
                         }] 
                     })
                 });
@@ -195,7 +221,12 @@
                     if (!Array.isArray(bulkResults)) { bulkResults = [bulkResults]; }
                     renderResults(bulkResults);
                 }
-            } catch (err) { console.error(err); } finally { toggleLoading(false); }
+            } catch (err) { 
+                console.error(err); 
+                alert("❌ 網路連線失敗，請檢查網域通道狀態。");
+            } finally { 
+                toggleLoading(false); 
+            }
         }
 
         // 📸 傳統發票圖片批量解包流
@@ -242,7 +273,6 @@
                     processedCount++;
                     document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
                 } else if (processedCount === 0) {
-                    // 🎯 修正：若累計張數為 0，則維持顯示 0 張
                     document.getElementById('resultCount').innerText = `0 張發票`;
                 }
 
@@ -288,7 +318,7 @@
                         <div class="text-xs space-y-0.5 text-left">
                             <span class="font-black block text-slate-100 text-base tracking-widest font-mono">📄 ${data.發票字軌與號碼 || '未知號碼'}</span>
                             <span class="text-slate-400 block font-bold mt-0.5">${displayPeriod}</span>
-                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '圖片辨識'} | 對獎完成</span>
+                            <span class="text-slate-500 font-mono text-[10px] block mt-0.5">${data.發票輸入方式 || '掃描輸入'} | 對獎完成</span>
                         </div>
                         ${rightSideHtml}
                     `;
