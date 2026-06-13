@@ -31,7 +31,7 @@
         </div>
         <div class="space-y-1">
             <h3 id="alertTitle" class="text-base font-black tracking-wider" style="color:#1A2E4A;">系統提示</h3>
-            <p id="alertMessage" class="text-xs leading-relaxed whitespace-pre-line" style="color:#3A5A7A;"></p>
+            <p id="alertMessage" class="leading-relaxed whitespace-pre-line" style="color:#3A5A7A; font-size:14px;"></p>
         </div>
         <button onclick="closeAlert()" id="alertConfirmBtn" class="w-full font-bold py-2.5 px-4 rounded-xl text-xs tracking-wider transition duration-200 shadow" style="background:#1A2E4A; color:#fff; border:none;">
             確認
@@ -49,14 +49,16 @@
             <h1 class="text-2xl font-black tracking-wider" style="color:#1A2E4A;">AI 拍拍中獎王</h1>
         </header>
 
-        <main class="w-full my-auto space-y-4 animate-fadeIn">
-            <div class="space-y-4 py-2">
+        <!-- 置頂按鈕區塊 -->
+        <div class="sticky top-0 z-10 pb-3" style="background-color:#C8DDF0;">
+            <div class="space-y-3 pt-1">
                 <label class="relative flex items-center p-5 rounded-2xl transition duration-200 cursor-pointer group shadow-md" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                     <input type="file" id="imageCapture" accept="image/*" multiple class="hidden" disabled>
                     <div class="flex items-center space-x-4 pointer-events-none">
                         <span class="text-4xl group-hover:scale-105 transition duration-200">📸</span>
                         <div class="text-left">
                             <span class="block font-black text-lg transition duration-200" style="color:#1A2E4A;">拍攝 / 上傳傳統長發票</span>
+                            <span class="block text-xs font-bold mt-0.5" style="color:#DC2626;">一次最多可上傳 5 張照片</span>
                         </div>
                     </div>
                 </label>
@@ -73,20 +75,23 @@
                             </svg>
                         </span>
                         <div>
-                            <span class="block font-black text-lg transition duration-200" style="color:#1A2E4A;">掃描電子發票 QRCode </span>
+                            <span class="block font-black text-lg transition duration-200" style="color:#1A2E4A;">掃描電子發票 QRCode</span>
                         </div>
                     </div>
                 </button>
             </div>
+        </div>
 
+        <!-- 結果區塊 -->
+        <div class="flex-1 overflow-y-auto no-scrollbar py-3" style="padding-bottom:20px;">
             <div id="resultPanel" class="rounded-2xl p-4 space-y-3 hidden shadow-xl" style="background:#EBF4FB; border:1px solid #B0CDE0;">
                 <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid #B0CDE0;">
-                    <span class="text-xs font-black tracking-widest" style="color:#1A2E4A;">當前對獎報告明細</span>
+                    <span class="text-sm font-black tracking-widest" style="color:#1A2E4A;">即時對獎報告明細</span>
                     <span id="resultCount" class="text-xs font-mono font-bold" style="color:#3A5A7A;">0 張發票</span>
                 </div>
-                <div id="resultBox" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+                <div id="resultBox" class="space-y-2 overflow-y-auto pr-1" style="max-height:60vh;"></div>
             </div>
-        </main>
+        </div>
 
         <footer class="text-center py-4 text-xs font-bold tracking-wide" style="border-top:1px solid #B0CDE0; color:#3A5A7A;">
             AI 工具煉成記 • Sunny Tseng
@@ -227,11 +232,6 @@
         }
 
         document.getElementById('btnStartQrScan').addEventListener('click', async () => {
-            if (!isLineEnv) {
-                const mockData = prompt("【2.0 測試提示】請貼上電子發票 QRCode 的真實解碼字串：");
-                if (mockData) { fireQrCodeResult(mockData); }
-                return;
-            }
             if (liff.scanCodeV2) {
                 liff.scanCodeV2().then(async (result) => {
                     if (result.value) { fireQrCodeResult(result.value); }
@@ -244,7 +244,7 @@
             const matchResult = decodedText.match(validQrRegex);
             
             if (!matchResult) {
-                showAlert("哎呀！您掃到發票右邊的明細碼囉！\n\n請幫小秘書瞄準發票「左邊」有寫英文字軌號碼（例如: AH-07801615）的那顆正方形重新掃描喔！", "掃描提醒", "📸", "warning");
+                showAlert("哎呀！您掃到發票右邊的明細碼囉！\n\n請幫我瞄準發票「左邊」的那顆正方形重新掃描喔！", "掃描提醒", "📸", "warning");
                 return;
             }
             
@@ -304,7 +304,7 @@
             const hasInvalidFile = files.some(file => !allowedExtensions.test(file.name));
             
             if (hasInvalidFile) {
-                showAlert("小秘書只認得「發票照片」喔！請重新點選，並從「照片圖庫」選擇發票照片，或是直接使用「拍照」功能。", "格式不符", "⚠️", "warning");
+                showAlert("我只認得「發票照片」喔！請重新點選，或是直接使用「拍照」功能。", "格式不符", "⚠️", "warning");
                 e.target.value = ""; 
                 return; 
             }
@@ -340,65 +340,76 @@
             const panel = document.getElementById('resultPanel'); 
             const box = document.getElementById('resultBox');
             panel.classList.remove('hidden');
-            
+
+            // 計算有效發票數（排除 error）
             items.forEach(rawItem => {
-                let data = rawItem.json ? rawItem.json : rawItem; 
-                const card = document.createElement('div');
-                
+                const data = rawItem.json ? rawItem.json : rawItem;
                 if (data.status === "success" && data.狀態 !== "not_invoice") {
                     processedCount++;
-                    document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
-                } else if (processedCount === 0) {
-                    document.getElementById('resultCount').innerText = `0 張發票`;
                 }
+            });
+            document.getElementById('resultCount').innerText = `${processedCount} 張發票`;
 
-                // 📅 雙月精確翻譯 (例如 11505 顯示 05-06月)
+            // 排序：中獎（金額大到小）→ 尚未開獎 → 未中獎 → 不是台灣發票
+            const sorted = [...items].sort((a, b) => {
+                const da = a.json ? a.json : a;
+                const db = b.json ? b.json : b;
+                const rank = d => {
+                    if (d.status === "error" || d.狀態 === "not_invoice") return 3;
+                    if (d.狀態 === "中獎") return 0;
+                    if (d.狀態 === "尚未開獎") return 1;
+                    return 2;
+                };
+                if (rank(da) !== rank(db)) return rank(da) - rank(db);
+                if (da.狀態 === "中獎") return (parseInt(db.金額,10)||0) - (parseInt(da.金額,10)||0);
+                return parseInt(db.發票期別||0,10) - parseInt(da.發票期別||0,10);
+            });
+
+            sorted.forEach(rawItem => {
+                const data = rawItem.json ? rawItem.json : rawItem;
+                const card = document.createElement('div');
+
                 let displayPeriod = "期別格式錯誤";
                 if (data.發票期別 && data.發票期別.length === 5) {
                     const year = data.發票期別.substring(0, 3); 
                     const startMonth = parseInt(data.發票期別.substring(3, 5), 10);
-                    const endMonth = startMonth + 1;
-                    displayPeriod = `${year}年${String(startMonth).padStart(2, '0')}-${String(endMonth).padStart(2, '0')}月`;
+                    displayPeriod = `${year}年 ${String(startMonth).padStart(2, '0')}-${String(startMonth+1).padStart(2, '0')} 月`;
                 }
 
-                let statusColorClass = ""; let statusStyle = "border-color:#B0CDE0; background:#EBF4FB;"; 
+                let statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
                 let rightSideHtml = "";
 
                 if (data.status === "error" || data.狀態 === "not_invoice") {
-                    statusColorClass = ""; statusStyle = "border-color:#fca5a5; background:#FEF2F2;";
-                    rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2.5 py-0.5 rounded-full font-black" style="background:#FEE2E2; color:#DC2626;">❌ 失敗</span></div>`;
-                    
-                    card.className = "p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow"; card.style.cssText = statusStyle;
+                    statusStyle = "border-color:#fca5a5; background:#FEF2F2;";
+                    rightSideHtml = `<div class="text-right"><span class="px-2.5 py-0.5 rounded-full font-black" style="font-size:14px; background:#FEE2E2; color:#DC2626;">❌ 失敗</span></div>`;
                     card.innerHTML = `
-                        <div class="text-xs space-y-0.5 text-left">
-                            <span class="font-black block text-base tracking-wide" style="color:#DC2626;">🐱 不是台灣發票</span>
-                            <span class="font-mono text-[10px] block mt-1" style="color:#64748b;">系統已自動隔離落盤通道</span>
+                        <div class="text-left">
+                            <span class="font-black block text-base" style="color:#DC2626;">🐱 不是台灣發票</span>
                         </div>
                         ${rightSideHtml}
                     `;
                 } else {
                     if (data.狀態 === "中獎") {
-                        statusColorClass = ""; statusStyle = "border-color:#fcd34d; background:#FFFBEB;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[11px] px-2 py-0.5 rounded-full font-black" style="background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="text-base font-black mt-1 tracking-wide" style="color:#92400e;">+${data.金額} 元</div></div>`;
+                        statusStyle = "border-color:#fcd34d; background:#FFFBEB;";
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-black" style="font-size:14px; background:#FEF3C7; color:#92400e;">🎉 ${data.狀態}</span><div class="font-black mt-1" style="font-size:14px; color:#92400e;">+${data.金額} 元</div></div>`;
                     } else if (data.狀態 === "未中獎") {
-                        statusColorClass = ""; statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
+                        statusStyle = "border-color:#B0CDE0; background:#EBF4FB;";
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-bold" style="font-size:14px; background:#C8DDF0; color:#64748b;">😮 ${data.狀態}</span></div>`;
                     } else if (data.狀態 === "尚未開獎") {
-                        statusColorClass = ""; statusStyle = "border-color:#93c5fd; background:#EFF6FF;";
-                        rightSideHtml = `<div class="text-right"><span class="text-[10px] px-2 py-0.5 rounded-full font-black" style="background:#DBEAFE; color:#1e40af;">⏳ ${data.狀態}</span></div>`;
+                        statusStyle = "border-color:#93c5fd; background:#EFF6FF;";
+                        rightSideHtml = `<div class="text-right"><span class="px-2 py-0.5 rounded-full font-black" style="font-size:14px; background:#DBEAFE; color:#1e40af;">⏳ ${data.狀態}</span></div>`;
                     }
-
-                    card.className = "p-4 rounded-2xl border flex items-center justify-between text-sm font-medium tracking-wide animate-fadeIn shadow"; card.style.cssText = statusStyle;
                     card.innerHTML = `
-                        <div class="text-xs space-y-0.5 text-left">
-                            <span class="font-black block text-base tracking-widest font-mono" style="color:#1A2E4A;">${data.發票字軌與號碼 || '未知號碼'}</span>
-                            <span class="block font-bold mt-0.5" style="color:#3A5A7A;">${displayPeriod}</span>
-                            <span class="font-mono text-[10px] block mt-0.5" style="color:#64748b;">${data.發票輸入方式 || '掃描輸入'} | 對獎完成</span>
+                        <div class="space-y-0.5 text-left">
+                            <span class="font-black block tracking-widest font-mono" style="font-size:18px; color:#1A2E4A;">${data.發票字軌與號碼 || '未知號碼'}</span>
+                            <span class="block font-bold" style="font-size:14px; color:#3A5A7A;">${displayPeriod}</span>
                         </div>
                         ${rightSideHtml}
                     `;
                 }
-                box.insertBefore(card, box.firstChild);
+                card.className = "p-4 rounded-2xl border flex items-center justify-between font-medium tracking-wide animate-fadeIn shadow";
+                card.style.cssText = statusStyle;
+                box.appendChild(card);
             });
         }
     </script>
